@@ -1,0 +1,11 @@
+.presentation h1 {
+    text-align: center;
+}
+.presentation .row {
+    margin-top: 20px;
+}
+
+.searchForm {
+    padding: 10px;
+    background-color: rgb(236, 226, 226);
+}
