@@ -1,0 +1,79 @@
+{% extends 'partial/base.html' %}
+
+{% block content %}
+    <section>
+        <div class="container-fluid searchForm">
+                <form method="POST">
+                        <div class="form-row">
+                          <div class="form-group col-md-4">
+                            <label for="nomUsuel">Nom usuel</label>
+                            <input type="text" class="form-control" id="nomUsuel" placeholder="Nom">
+                          </div>
+                          <div class="form-group col-md-2">
+                              <label for="comestible">Comestibilité</label>
+                              <select id="comestible" class="form-control">
+                                  <option value="all" selected>Non renseigné</option>
+                                  <option value="oui">Oui</option>
+                                  <option value="non">Non</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-3">
+                                <label for="genre">Genre</label>
+                                <input type="text" class="form-control" id="genre" placeholder="Genre">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="espece">Espèce</label>
+                                <input type="text" class="form-control" id="espece" placeholder="Espèce">
+                                </div>
+                            </div>
+                          <div class="form-group col-md-6">
+                                <input class="form-check-input" type="checkbox" id="presentSms">
+                                <label class="form-check-label" for="presentSms">
+                                    Afficher uniquement les champignons présents à la SMS
+                                </label>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <input class="form-check-input" type="checkbox" id="displaySyno">
+                                <label class="form-check-label" for="displaySyno">
+                                    Afficher les synonymes
+                                </label>
+                            </div>
+    
+                        <button type="submit" class="btn btn-primary">Recherche</button>
+                      </form>
+        </div>
+    </section>
+
+    <section id="searchResults">
+        <h3>Nombre de résultats : {{shrooms|length}}</h3>
+        <div class="container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Taxon</th>
+                        <th>Noms usuels</th>
+                        <th>Genre</th>
+                        <th>Espèce</th>
+                        <th>Comestible</th>
+                        <th>Présent à la SMS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for obj in shrooms %}
+                    <tr>
+                    <td>{{ obj.taxon }}</td>
+                    <td>{{ obj.nom }}</td>
+                    <td>{{ obj.genre }}</td>
+                    <td>{{ obj.espece }}</td>
+                    <td>{{ obj.com }}</td>
+                    <td>{{ obj.sms }}</td>
+                    {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+{% endblock %}

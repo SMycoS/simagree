@@ -1,0 +1,41 @@
+.presentation {
+    .row {
+        margin-top: 20px;
+    }
+
+    h1 {
+        text-align: center;
+    }
+}
+
+.searchForm {
+    padding: 10px;
+    background-color: #e9ecef;
+}
+
+#searchResults {
+    margin: 15px;
+    table {
+        margin: auto;
+        text-align: center;
+        border: 1px solid lightcoral;
+        border-radius: 10px;
+        tr {
+            &:nth-child(even){
+                background-color: whitesmoke;
+            }
+    
+            &:nth-child(odd){
+                background-color: lightgrey;
+            }
+        } 
+
+    }
+    th {
+        padding: 5px;
+        background-color: darkgrey;
+    }
+    td {
+        padding: 5px;
+    }
+}
