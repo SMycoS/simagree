@@ -67,8 +67,14 @@
                     <td>{{ obj.nom }}</td>
                     <td>{{ obj.genre }}</td>
                     <td>{{ obj.espece }}</td>
-                    <td>{{ obj.com }}</td>
-                    <td>{{ obj.sms }}</td>
+                    <td>{{ obj.taxon__comestible }}</td>
+                    <td>
+                        {% if obj.taxon__sms == True %}
+                        Oui
+                        {% else %}
+                        Non
+                        {% endif %}
+                    </td>
                     {% endfor %}
                     </tr>
                 </tbody>
