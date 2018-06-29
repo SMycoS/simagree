@@ -63,8 +63,8 @@
                 <tbody>
                     {% for obj in shrooms %}
                     <tr>
-                    <td>{{ obj.taxon }}</td>
-                    <td>{{ obj.nom }}</td>
+                    <td>{{ obj.taxon_id }}</td>
+                    <td>{{ obj.taxon__noms }}</td>
                     <td>{{ obj.genre }}</td>
                     <td>{{ obj.espece }}</td>
                     <td>{{ obj.taxon__comestible }}</td>

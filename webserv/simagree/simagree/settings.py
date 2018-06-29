@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'debug_toolbar',
     'app.apps.AppConfig',
 ]
 
@@ -48,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'simagree.urls'
@@ -77,12 +79,20 @@ WSGI_APPLICATION = 'simagree.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'sms',
+        'NAME': 'sms_djangodb',
         'USER': 'mycostra',
         'PASSWORD': 'mysecretpassword',
         'HOST': 'localhost',
         'PORT': '5432',
-        }
+        },
+    'simagree': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'sms_simagree',
+        'USER': 'mycostra',
+        'PASSWORD': 'mysecretpassword',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
 }
 
 
@@ -123,3 +133,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/app/static/'
+INTERNAL_IPS = ['127.0.0.1']
