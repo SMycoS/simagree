@@ -2,27 +2,45 @@
 
 from .models import Identifiants, NotesEco, Themes, Nomenclature
 
-class searchParse():
+# initie la requête à la BDD simagree
+# l'argument data est la forme nettoyée (cleaned_data) du formulaire de recherche
+def dbRequest(data):
 
-    def __init__(self):
-        self.genre = ''
-        self.espece = ''
-        self.nom = ''
-        self.sms = False
-        self.syno = False
+    # préparation de la requête
+    query = Nomenclature.objects.using('simagree').select_related('taxon')
 
-        self.opts = {
-            'taxon' : 'taxon_id',
-            'genre' : 'genre',
-            'espece' : 'espece',
-            'noms' : 'taxon__noms',
-            'sms' : 'taxon__sms'
-        }
+    # agrégation de filtres
+
+    # options checkables
+    if (not data['displaySyno']):
+        query = query.filter(codesyno=0) # uniquement nom principal
+    if (data['presentSms']):
+        query = query.filter(taxon__sms=True)
     
-    
+    # filtres sur les champs texte
+    if (data['nomUsuel']):
+        query = query.filter(taxon__noms__icontains=data['nomUsuel'])
+    if (data['genre']):
+        query = query.filter(genre__icontains=data['genre'])
+    if (data['espece']):
+        query = query.filter(espece__icontains=data['espece'])
 
-    def initRequest(self):
-        # A compléter
-        return Nomenclature.objects.using('simagree').select_related('taxon').values(**self.opts)
-        
-        
+    # selecteur comestible
+    if (data['comestible'] == 'yes'):
+        query = query.filter(taxon__comestible='C')
+    elif (data['comestible'] == 'no'):
+        query.exclude(taxon__comestible='C')
+
+    
+    # la requête n'est effectuée qu'une seule fois, ci-dessous
+    return query.values(
+        'taxon_id',
+        'genre',
+        'espece',
+        'variete',
+        'forme',
+        'taxon__sms',
+        'taxon__comestible',
+        'taxon__noms'
+        )
+                        
