@@ -20,6 +20,6 @@ from . import views
 urlpatterns = [
     url(r'^$', views.accueil),
     url(r'^search/$', views.search),
-    url(r'^form/$', views.searchForm)
+    url(r'^add/$', views.add)
 
 ]

@@ -33,7 +33,7 @@ def dbRequest(data):
 
     
     # la requête n'est effectuée qu'une seule fois, ci-dessous
-    return query.values(
+    return query.order_by('taxon').values(
         'taxon_id',
         'genre',
         'espece',
