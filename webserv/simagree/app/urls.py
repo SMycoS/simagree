@@ -20,6 +20,7 @@ from . import views
 urlpatterns = [
     url(r'^$', views.accueil),
     url(r'^search/$', views.search),
-    url(r'^add/$', views.add)
+    url(r'^add_complete/$', views.add),
+    url(r'add_partial/$', views.addPartial)
 
 ]

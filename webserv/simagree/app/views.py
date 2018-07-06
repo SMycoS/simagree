@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect
 
 from .liste import MyList
 from .models import Identifiants, NotesEco, Themes, Nomenclature
-from .forms import SearchForm, MyModelForm, MyMod
+from .forms import SearchForm, AddFormNom, AddFormId, AddFormPartial
 from .searchparser import dbRequest
 
 def accueil(req):
@@ -33,19 +33,36 @@ def search(req):
 
 
 def add(req):
+    # première requête
     if req.method == 'GET':
-        #form = AddForm(req.GET or None)
-        formset = MyMod(req.GET or None)
-        f2 = MyModelForm(req.GET or None)
+        id_form = AddFormId(req.GET or None)
+        nom_form = AddFormNom(req.GET or None)
+    # après envoi du formulaire
     elif req.method == 'POST':
-        #form = AddForm(req.POST)
-        formset = MyMod(req.POST)
-        f2 = MyModelForm(req.POST)
-        if formset.is_valid():
-            inst = formset.save(commit = False)
+        id_form = AddFormId(req.POST)
+        nom_form = AddFormNom(req.POST)
+        if id_form.is_valid() and nom_form.is_valid():
+            # sauvegarde dans la table Identifiants
+            inst = id_form.save(commit = False)
             inst.save(using='simagree')
-            values = f2.save(commit = False)
-            print(req)
+
+            # sauvegarde dans la table Nomenclature
+            values = nom_form.save(commit = False)
             values.taxon = inst
             values.save(using='simagree')
-    return render(req, 'add.html', {'formset' : formset, 'form2' : f2})
+
+    return render(req, 'add.html', {'formset' : id_form, 'form2' : nom_form})
+
+def addPartial(req):
+    if req.method == 'GET':
+        nom_form = AddFormPartial(req.GET or None)
+    elif req.method == 'POST':
+        nom_form = AddFormPartial(req.POST)
+        if nom_form.is_valid():
+            id = nom_form.cleaned_data['tax']
+            print(id, type(id))
+            inst = Identifiants.objects.using('simagree').get(taxon = id)
+            values = nom_form.save(commit = False)
+            values.taxon = inst
+            values.save(using='simagree')
+    return render(req, 'add_partial.html', {'form' : nom_form})

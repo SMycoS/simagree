@@ -11,27 +11,30 @@ class SearchForm(forms.Form):
     presentSms = forms.BooleanField(label='Afficher uniquement les espèces présentes à la SMS', widget=forms.CheckboxInput, required=False)
     displaySyno = forms.BooleanField(label='Afficher les synonymes', widget=forms.CheckboxInput, required=False)
 
-class AddForm(forms.Form):
-    taxon = forms.IntegerField(label = 'Taxon')
-    genre = forms.CharField(label = 'Genre')
-    espece = forms.CharField(label = 'Espèce')
-    noms = forms.CharField(label = 'Noms usuels')
-    opts = [('','Non renseigné'), ('C', 'Comestible'), ('NC', 'Non comestible'), ('T', 'Toxique'), ('M', 'Mortel')]
-    comestible = forms.ChoiceField(label='Comestible', widget=forms.Select, choices=opts)
-    presentSms = forms.BooleanField(label='Présent à la SMS', widget=forms.CheckboxInput, required=False)
-    codeSyno = forms.IntegerField(label = 'Code synonyme')
-    forme = forms.CharField(label = 'Forme')
-    variete = forms.CharField(label = 'Variété')
-    eco = forms.CharField(label = 'Ecologie')
-    notes = forms.CharField(label = 'Notes', widget=forms.Textarea)
-
-class MyModelForm(forms.ModelForm):
+class AddFormNom(forms.ModelForm):
     class Meta:
         model = Nomenclature
         fields = '__all__'
         exclude = ('taxon'),
 
-class MyMod(forms.ModelForm):
+class AddFormId(forms.ModelForm):
     class Meta:
         model = Identifiants
         fields = '__all__'
+
+class AddFormPartial(forms.ModelForm):
+    tax = forms.IntegerField()
+
+    def clean_tax(self):
+        form_tax = self.cleaned_data.get("tax")
+
+        existing = Nomenclature.objects.using('simagree').filter(
+                       taxon_id=form_tax
+                   ).exists()
+        if not existing:
+            raise forms.ValidationError(u"Le taxon n'existe pas")
+        return form_tax
+    class Meta:
+        model = Nomenclature
+        fields = '__all__'
+        exclude = ('taxon'),
