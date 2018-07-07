@@ -16,11 +16,32 @@ class AddFormNom(forms.ModelForm):
         model = Nomenclature
         fields = '__all__'
         exclude = ('taxon'),
+        widgets = { 'codesyno' : forms.NumberInput(attrs={'class' : 'form-control'}),
+            'genre' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'espece' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'variete' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'forme' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'autorite' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'moser' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'biblio1' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'biblio2' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'biblio3' : forms.TextInput(attrs={'class' : 'form-control'}),
+        }
 
 class AddFormId(forms.ModelForm):
     class Meta:
         model = Identifiants
         fields = '__all__'
+        widgets = {
+            'taxon' : forms.NumberInput(attrs={'class' : 'form-control'}),
+            'noms' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'fiche' :forms.NumberInput(attrs={'class' : 'form-control'}),
+            'comestible' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'sms' : forms.NullBooleanSelect(attrs={'class' : 'form-control'}),
+            'a_imprimer' : forms.NullBooleanSelect(attrs={'class' : 'form-control'}),
+            'lieu' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'apparition' : forms.TextInput(attrs={'class' : 'form-control'}),
+        }
 
 class AddFormPartial(forms.ModelForm):
     tax = forms.IntegerField()
@@ -38,3 +59,17 @@ class AddFormPartial(forms.ModelForm):
         model = Nomenclature
         fields = '__all__'
         exclude = ('taxon'),
+        widgets = {
+            'tax' : forms.NumberInput(attrs={'class' : 'form-control'}),
+            'codesyno' : forms.NumberInput(attrs={'class' : 'form-control'}),
+            'genre' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'espece' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'variete' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'forme' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'autorite' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'moser' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'biblio1' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'biblio2' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'biblio3' : forms.TextInput(attrs={'class' : 'form-control'}),
+
+        }
