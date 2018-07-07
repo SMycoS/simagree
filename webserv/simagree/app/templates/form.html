@@ -28,7 +28,7 @@
             <tbody>
                 {% for obj in shrooms %}
                 <tr>
-                <td>{{ obj.taxon_id }}</td>
+                <td><a href="{% url 'details'%}/{{ obj.taxon_id }}">{{ obj.taxon_id }}</a></td>
                 <td>{{ obj.genre }}</td>
                 <td>{{ obj.espece }}</td>
                 <td>{{ obj.taxon__noms }}</td>

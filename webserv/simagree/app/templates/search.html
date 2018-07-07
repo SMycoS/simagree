@@ -31,7 +31,7 @@
                 <tbody>
                     {% for obj in shrooms %}
                     <tr>
-                    <td>{{ obj.taxon_id }}</td>
+                    <td><a href="{% url 'details' tax=obj.taxon_id%}">{{ obj.taxon_id }}</a></td>
                     <td>{{ obj.genre }}</td>
                     <td>{{ obj.espece }}</td>
                     <td>{{ obj.variete }}</td>
@@ -39,7 +39,7 @@
                     <td>{{ obj.taxon__noms }}</td>
                     <td>{{ obj.taxon__comestible }}</td>
                     <td>
-                        {% if obj.taxon__sms == True %}
+                        {% if obj.taxon__sms %}
                         Oui
                         {% else %}
                         Non

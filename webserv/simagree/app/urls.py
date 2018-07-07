@@ -18,9 +18,10 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.accueil),
-    url(r'^search/$', views.search),
-    url(r'^add_complete/$', views.add),
-    url(r'add_partial/$', views.addPartial)
+    url(r'^$', views.accueil, name = 'home'),
+    url(r'^search/$', views.search, name = 'search'),
+    url(r'^add_complete/$', views.add, name = 'add'),
+    url(r'add_partial/$', views.addPartial, name = 'addPart'),
+    url(r'^details/(?P<tax>[0-9]+)/$', views.details, name = 'details')
 
 ]

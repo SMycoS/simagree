@@ -66,3 +66,7 @@ def addPartial(req):
             values.taxon = inst
             values.save(using='simagree')
     return render(req, 'add_partial.html', {'form' : nom_form})
+
+def details(req, tax):
+    item = Identifiants.objects.using('simagree').get(taxon = tax)
+    return render(req, 'details.html', {'shroom' : item})

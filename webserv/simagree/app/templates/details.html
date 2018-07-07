@@ -1,0 +1,33 @@
+{% extends 'partial/base.html' %}
+
+{% block content %}
+<div class="jumbotron">
+        <h1 class="display-4">Taxon {{ shroom.taxon }}</h1>
+        <p class="lead">{{ shroom.noms }}</p>
+        <ul>
+            <li>
+                {% if shroom.sms %}
+                    Ce champignon est présent à la SMS
+                {% endif %}
+            </li>
+            <li>
+                {% if shroom.comestible == 'C' %}
+                    Ce champignon est <b>comestible</b>
+                {% elif shroom.comestible == 'NC' %}
+                    Ce champignon est <b>non comestible</b>
+                {% elif shroom.comestible == 'T' %}
+                    Ce champignon est <b>toxique</b>
+                {% elif shroom.comestible == 'M'}
+                    Ce champignon est <b>mortel</b>
+                {% else %}
+                    Aucune information concernant sa comestibilité
+                {% endif %}
+            </li>
+        </ul>
+        <hr class="my-4">
+        <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
+        <p class="lead">
+          <a class="btn btn-primary btn-lg" href="#" role="button">Générer une fiche</a>
+        </p>
+      </div>
+{% endblock %}
