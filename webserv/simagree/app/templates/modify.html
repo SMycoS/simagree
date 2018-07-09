@@ -1,0 +1,28 @@
+{% extends 'partial/base.html' %}
+
+{% block content %}
+<div class="container formDiv">
+    <form class="form-horizontal" method="POST" action="">
+        {% csrf_token %}
+        {{ formset.non_field_errors }}
+        {% for field in formset %}
+        <div class="form-group">
+            <label for="{{ field.name }}">{{ field.label }}</label>
+            {{ field }}
+            <small class="form-text text-muted">{{ field.errors }}</small>
+          </div>
+        {% endfor %}
+        {{ form2.non_field_errors}}
+        {% for field in form2 %}
+        <div class="form-group">
+            <label for="{{ field.name }}">{{ field.label }}</label>
+            {{ field }}
+            <small class="form-text text-muted">{{ field.errors }}</small>
+          </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Créer</button>
+
+        </div>
+        </form>
+</div>
+{% endblock %}

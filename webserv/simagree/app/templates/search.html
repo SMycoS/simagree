@@ -3,8 +3,7 @@
 {% block content %}
     <section>
         <div class="container-fluid searchForm">
-            <form action="/search/" method="POST">
-                {% csrf_token %}
+            <form action="/search/" method="GET">
                 {{ form }}
                 <button type="submit" class="btn btn-primary">Recherche</button>
             </form>
@@ -31,7 +30,7 @@
                 <tbody>
                     {% for obj in shrooms %}
                     <tr>
-                    <td><a href="{% url 'details' tax=obj.taxon_id%}">{{ obj.taxon_id }}</a></td>
+                    <td><a href="{% url 'details' tax=obj.taxon_id %}">{{ obj.taxon_id }}</a></td>
                     <td>{{ obj.genre }}</td>
                     <td>{{ obj.espece }}</td>
                     <td>{{ obj.variete }}</td>
@@ -45,8 +44,13 @@
                         Non
                         {% endif %}
                     </td>
-                    <td><a href="#">Modifier</a>
-                    <a href="#">Supprimer</a></td>
+                    <td><a href="{% url 'modify' id=obj.id %}">Modifier</a>
+                    <form action="/delete/" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <input type="hidden" name="ident" value="{{ obj.id }}">
+                        <button type="submit">Supprimer</button>
+                    </form></td>
                     {% endfor %}
                     </tr>
                 </tbody>

@@ -41,6 +41,7 @@ def dbRequest(data):
         'forme',
         'taxon__sms',
         'taxon__comestible',
-        'taxon__noms'
+        'taxon__noms',
+        'id'
         )
-                        
+
