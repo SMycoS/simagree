@@ -1,5 +1,14 @@
 from django.db import models
 
+
+class Themes(models.Model):
+    id = models.AutoField(primary_key=True)
+    theme = models.TextField()
+
+    class Meta:
+        managed = True
+        db_table = 'themes'
+
 class Identifiants(models.Model):
     taxon = models.IntegerField(unique=True)
     noms = models.TextField(blank=True, null=True)
@@ -9,6 +18,7 @@ class Identifiants(models.Model):
     a_imprimer = models.NullBooleanField()
     lieu = models.TextField(blank=True, null=True)
     apparition = models.TextField()
+
 
     class Meta:
         managed = True
@@ -43,11 +53,3 @@ class NotesEco(models.Model):
         db_table = 'notes_eco'
 
 
-class Themes(models.Model):
-    id = models.AutoField(primary_key=True)
-    taxon = models.ForeignKey(Identifiants, on_delete=models.CASCADE, to_field='taxon')
-    theme = models.TextField()
-
-    class Meta:
-        managed = True
-        db_table = 'themes'

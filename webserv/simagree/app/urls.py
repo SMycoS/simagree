@@ -24,5 +24,7 @@ urlpatterns = [
     url(r'add_partial/$', views.addPartial, name = 'addPart'),
     url(r'^details/(?P<tax>[0-9]+)/$', views.details, name = 'details'),
     url(r'^delete/$', views.deleteConfirm, name = 'delete'),
-    url(r'^modify/(?P<id>[0-9]+)/$', views.modify, name = 'modify')
+    url(r'^modify/(?P<id>[0-9]+)/$', views.modify, name = 'modify'),
+    url(r'^login/$', views.connexion, name = 'login'),
+    url(r'^logout/$', views.deconnexion, name = 'logout')
 ]

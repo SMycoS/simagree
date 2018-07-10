@@ -1,12 +1,14 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
+from django.contrib.auth import authenticate, login, logout
+from django.urls import reverse
 
 
 # Create your views here.
 
 from .liste import MyList
 from .models import Identifiants, NotesEco, Themes, Nomenclature
-from .forms import SearchForm, AddFormNom, AddFormId, AddFormPartial
+from .forms import SearchForm, AddFormNom, AddFormId, AddFormPartial, ConnexionForm
 from .searchparser import dbRequest
 
 def accueil(req):
@@ -111,3 +113,24 @@ def modify(req, id):
                 values.save(using='simagree')
 
     return render(req, 'modify.html', {'formset' : id_form, 'form2' : nom_form})
+
+def connexion(request):
+    error = False
+    if request.method == "POST":
+        form = ConnexionForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+            user = authenticate(username=username, password=password)  # Nous vérifions si les données sont correctes
+            if user:  # Si l'objet renvoyé n'est pas None
+                login(request, user)  # nous connectons l'utilisateur
+            else: # sinon une erreur sera affichée
+                error = True
+    else:
+        form = ConnexionForm()
+
+    return render(request, 'login.html', locals())
+
+def deconnexion(request):
+    logout(request)
+    return redirect(reverse(connexion))
