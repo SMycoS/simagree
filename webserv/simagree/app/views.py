@@ -15,61 +15,73 @@ def accueil(req):
     return render(req, 'home.html')
 
 def search(req):
-    # if this is a POST request we need to process the form data
-    if req.method == 'GET':
-        # create a form instance and populate it with data from the request:
-        form = SearchForm(req.GET or None, auto_id=True)
-        # check whether it's valid:
-        if form.is_valid():
-            # process the data in form.cleaned_data as required
-            # ...
-            # redirect to a new URL:
-            items = dbRequest(form.cleaned_data)
-            return render(req, 'search.html', {'form' : form, 'shrooms' : items})
-    else:
-        form = SearchForm(auto_id=True)
+    if req.user.is_authenticated:
+        # if this is a POST request we need to process the form data
+        if req.method == 'GET':
+            # create a form instance and populate it with data from the request:
+            form = SearchForm(req.GET or None, auto_id=True)
+            # check whether it's valid:
+            if form.is_valid():
+                # process the data in form.cleaned_data as required
+                # ...
+                # redirect to a new URL:
+                items = dbRequest(form.cleaned_data)
+                return render(req, 'search.html', {'form' : form, 'shrooms' : items})
+        else:
+            form = SearchForm(auto_id=True)
 
-    return render(req, 'search.html',{'form' : form} )
+        return render(req, 'search.html',{'form' : form} )
+    else:
+        return redirect(reverse(connexion))
 
 
 def add(req):
-    # première requête
-    if req.method == 'GET':
-        id_form = AddFormId(req.GET or None)
-        nom_form = AddFormNom(req.GET or None)
-    # après envoi du formulaire
-    elif req.method == 'POST':
-        id_form = AddFormId(req.POST)
-        nom_form = AddFormNom(req.POST)
-        if id_form.is_valid() and nom_form.is_valid():
-            # sauvegarde dans la table Identifiants
-            inst = id_form.save(commit = False)
-            inst.save(using='simagree')
+    if req.user.is_authenticated:
+        # première requête
+        if req.method == 'GET':
+            id_form = AddFormId(req.GET or None)
+            nom_form = AddFormNom(req.GET or None)
+        # après envoi du formulaire
+        elif req.method == 'POST':
+            id_form = AddFormId(req.POST)
+            nom_form = AddFormNom(req.POST)
+            if id_form.is_valid() and nom_form.is_valid():
+                # sauvegarde dans la table Identifiants
+                inst = id_form.save(commit = False)
+                inst.save(using='simagree')
 
-            # sauvegarde dans la table Nomenclature
-            values = nom_form.save(commit = False)
-            values.taxon = inst
-            values.save(using='simagree')
+                # sauvegarde dans la table Nomenclature
+                values = nom_form.save(commit = False)
+                values.taxon = inst
+                values.save(using='simagree')
 
-    return render(req, 'add.html', {'formset' : id_form, 'form2' : nom_form})
+        return render(req, 'add.html', {'formset' : id_form, 'form2' : nom_form})
+    else:
+        return redirect(reverse(connexion))
 
 def addPartial(req):
-    if req.method == 'GET':
-        nom_form = AddFormPartial(req.GET or None)
-    elif req.method == 'POST':
-        nom_form = AddFormPartial(req.POST)
-        if nom_form.is_valid():
-            id = nom_form.cleaned_data['tax']
-            print(id, type(id))
-            inst = Identifiants.objects.using('simagree').get(taxon = id)
-            values = nom_form.save(commit = False)
-            values.taxon = inst
-            values.save(using='simagree')
-    return render(req, 'add_partial.html', {'form' : nom_form})
+    if req.user.is_authenticated:
+        if req.method == 'GET':
+            nom_form = AddFormPartial(req.GET or None)
+        elif req.method == 'POST':
+            nom_form = AddFormPartial(req.POST)
+            if nom_form.is_valid():
+                id = nom_form.cleaned_data['tax']
+                print(id, type(id))
+                inst = Identifiants.objects.using('simagree').get(taxon = id)
+                values = nom_form.save(commit = False)
+                values.taxon = inst
+                values.save(using='simagree')
+        return render(req, 'add_partial.html', {'form' : nom_form})
+    else:
+        return redirect(reverse(connexion))
 
 def details(req, tax):
-    item = Identifiants.objects.using('simagree').get(taxon = tax)
-    return render(req, 'details.html', {'shroom' : item})
+    if req.user.is_authenticated:
+        item = Identifiants.objects.using('simagree').get(taxon = tax)
+        return render(req, 'details.html', {'shroom' : item})
+    else:
+        return redirect(reverse(connexion))
 
 def deleteConfirm(req):
     if req.method == 'POST':
@@ -78,41 +90,44 @@ def deleteConfirm(req):
         return HttpResponseRedirect(req.POST.get('next'))
 
 def modify(req, id):
-    inst_nom = Nomenclature.objects.using('simagree').get(id = id)
-    inst_id = Identifiants.objects.using('simagree').get(taxon=inst_nom.taxon_id)
-    # première requête
-    if req.method == 'GET':
-        id_form = AddFormId(req.GET or None, instance=inst_id)
-        nom_form = AddFormNom(req.GET or None, instance=inst_nom)
-    # après envoi du formulaire
-    elif req.method == 'POST':
-        if int(req.POST.get('taxon')) != inst_id.taxon:
-            id_form = AddFormId(req.POST)
-        else:
-            id_form = AddFormId(req.POST, instance=inst_id)
-            print('CAS 2')
-        nom_form = AddFormNom(req.POST, instance=inst_nom)
-        if id_form.is_valid() and nom_form.is_valid():
-            if id_form.cleaned_data['taxon'] != inst_id.taxon:
-                new_inst = id_form.save(commit = False)
-                new_inst.save(using='simagree')
-                # sauvegarde dans la table Nomenclature
-                Nomenclature.objects.using('simagree').filter(taxon=inst_id.taxon).update(taxon=new_inst)
-                inst_id.delete()
-                values = nom_form.save(commit = False)
-                values.taxon = new_inst
-                values.save(using='simagree')
+    if req.user.is_authenticated:
+        inst_nom = Nomenclature.objects.using('simagree').get(id = id)
+        inst_id = Identifiants.objects.using('simagree').get(taxon=inst_nom.taxon_id)
+        # première requête
+        if req.method == 'GET':
+            id_form = AddFormId(req.GET or None, instance=inst_id)
+            nom_form = AddFormNom(req.GET or None, instance=inst_nom)
+        # après envoi du formulaire
+        elif req.method == 'POST':
+            if int(req.POST.get('taxon')) != inst_id.taxon:
+                id_form = AddFormId(req.POST)
             else:
-                # sauvegarde dans la table Identifiants
-                inst_id = id_form.save(commit = False)
-                inst_id.save(using='simagree')
+                id_form = AddFormId(req.POST, instance=inst_id)
+                print('CAS 2')
+            nom_form = AddFormNom(req.POST, instance=inst_nom)
+            if id_form.is_valid() and nom_form.is_valid():
+                if id_form.cleaned_data['taxon'] != inst_id.taxon:
+                    new_inst = id_form.save(commit = False)
+                    new_inst.save(using='simagree')
+                    # sauvegarde dans la table Nomenclature
+                    Nomenclature.objects.using('simagree').filter(taxon=inst_id.taxon).update(taxon=new_inst)
+                    inst_id.delete()
+                    values = nom_form.save(commit = False)
+                    values.taxon = new_inst
+                    values.save(using='simagree')
+                else:
+                    # sauvegarde dans la table Identifiants
+                    inst_id = id_form.save(commit = False)
+                    inst_id.save(using='simagree')
 
-                # sauvegarde dans la table Nomenclature
-                values = nom_form.save(commit = False)
-                values.taxon = inst_id
-                values.save(using='simagree')
+                    # sauvegarde dans la table Nomenclature
+                    values = nom_form.save(commit = False)
+                    values.taxon = inst_id
+                    values.save(using='simagree')
 
-    return render(req, 'modify.html', {'formset' : id_form, 'form2' : nom_form})
+        return render(req, 'modify.html', {'formset' : id_form, 'form2' : nom_form})
+    else:
+        return redirect(reverse(connexion))
 
 def connexion(request):
     error = False
