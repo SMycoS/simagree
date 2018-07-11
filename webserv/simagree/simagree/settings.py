@@ -87,7 +87,7 @@ DATABASES = {
         },
     'simagree': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'sms_simagree',
+        'NAME': 'sms_simagree_bis',
         'USER': 'mycostra',
         'PASSWORD': 'mysecretpassword',
         'HOST': 'localhost',
@@ -118,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fr-fr'
 
 TIME_ZONE = 'UTC'
 

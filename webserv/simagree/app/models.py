@@ -2,8 +2,13 @@ from django.db import models
 
 
 class Themes(models.Model):
-    id = models.AutoField(primary_key=True)
-    theme = models.TextField()
+    theme = models.TextField(unique = True)
+
+    def __unicode__(self):
+        return self.theme
+    
+    def __str__(self):
+        return self.theme
 
     class Meta:
         managed = True
@@ -18,6 +23,17 @@ class Identifiants(models.Model):
     a_imprimer = models.NullBooleanField()
     lieu = models.TextField(blank=True, null=True)
     apparition = models.TextField()
+    notes = models.TextField(blank = True, null = True)
+    ecologie = models.TextField(blank = True, null = True)
+    theme1 = models.ForeignKey(Themes, on_delete = models.SET_NULL, null = True, to_field='theme', related_name='Theme1')
+    theme2 = models.ForeignKey(Themes, on_delete = models.SET_NULL, null = True, to_field='theme', related_name='Theme2')
+    theme3 = models.ForeignKey(Themes, on_delete = models.SET_NULL, null = True, to_field='theme', related_name='Theme3')
+    theme4 = models.ForeignKey(Themes, on_delete = models.SET_NULL, null = True, to_field='theme', related_name='Theme4')
+    icono1 = models.TextField(blank = True, null = True)
+    icono2 = models.TextField(blank = True, null = True)
+    icono3 = models.TextField(blank = True, null = True)
+    num_herbier = models.IntegerField(blank = True, null = True)
+    
 
 
     class Meta:
@@ -37,19 +53,9 @@ class Nomenclature(models.Model):
     biblio1 = models.TextField(blank=True, null=True)
     biblio2 = models.TextField(blank=True, null=True)
     biblio3 = models.TextField(blank=True, null=True)
+    date = models.DateField(auto_now = True)
 
     class Meta:
         managed = True
         db_table = 'nomenclature'
-
-
-class NotesEco(models.Model):
-    taxon = models.ForeignKey(Identifiants, on_delete=models.CASCADE, to_field='taxon')
-    notes = models.TextField()
-    ecologie = models.TextField()
-
-    class Meta:
-        managed = True
-        db_table = 'notes_eco'
-
 

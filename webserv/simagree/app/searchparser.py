@@ -1,6 +1,6 @@
 # Parsing des options de recherche
 
-from .models import Identifiants, NotesEco, Themes, Nomenclature
+from .models import Identifiants, Themes, Nomenclature
 
 # initie la requête à la BDD simagree
 # l'argument data est la forme nettoyée (cleaned_data) du formulaire de recherche

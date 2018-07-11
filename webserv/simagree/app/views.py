@@ -2,13 +2,14 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse
+from django.db.models import Q
+
 
 
 # Create your views here.
 
-from .liste import MyList
-from .models import Identifiants, NotesEco, Themes, Nomenclature
-from .forms import SearchForm, AddFormNom, AddFormId, AddFormPartial, ConnexionForm
+from .models import Identifiants, Themes, Nomenclature
+from .forms import SearchForm, AddFormNom, AddFormId, AddFormPartial, ConnexionForm, AddThemeForm
 from .searchparser import dbRequest
 
 def accueil(req):
@@ -35,6 +36,8 @@ def search(req):
         return redirect(reverse(connexion))
 
 
+########## Vues pour la gestion des champignons ##########
+
 def add(req):
     if req.user.is_authenticated:
         # première requête
@@ -53,11 +56,15 @@ def add(req):
                 # sauvegarde dans la table Nomenclature
                 values = nom_form.save(commit = False)
                 values.taxon = inst
+                # vérification du code synonyme
+                if values.codesyno == 0:
+                    Nomenclature.objects.using('simagree').filter(Q(taxon=new_inst.taxon) & Q(codesyno=0)).update(codesyno=1)
                 values.save(using='simagree')
 
         return render(req, 'add.html', {'formset' : id_form, 'form2' : nom_form})
     else:
         return redirect(reverse(connexion))
+
 
 def addPartial(req):
     if req.user.is_authenticated:
@@ -67,10 +74,12 @@ def addPartial(req):
             nom_form = AddFormPartial(req.POST)
             if nom_form.is_valid():
                 id = nom_form.cleaned_data['tax']
-                print(id, type(id))
                 inst = Identifiants.objects.using('simagree').get(taxon = id)
                 values = nom_form.save(commit = False)
                 values.taxon = inst
+                # vérification du code synonyme
+                if values.codesyno == 0:
+                    Nomenclature.objects.using('simagree').filter(Q(taxon=new_inst.taxon) & Q(codesyno=0)).update(codesyno=1)
                 values.save(using='simagree')
         return render(req, 'add_partial.html', {'form' : nom_form})
     else:
@@ -99,21 +108,33 @@ def modify(req, id):
             nom_form = AddFormNom(req.GET or None, instance=inst_nom)
         # après envoi du formulaire
         elif req.method == 'POST':
+            # si le taxon a été modifié
             if int(req.POST.get('taxon')) != inst_id.taxon:
                 id_form = AddFormId(req.POST)
             else:
                 id_form = AddFormId(req.POST, instance=inst_id)
-                print('CAS 2')
             nom_form = AddFormNom(req.POST, instance=inst_nom)
             if id_form.is_valid() and nom_form.is_valid():
+                # taxon modifié
                 if id_form.cleaned_data['taxon'] != inst_id.taxon:
                     new_inst = id_form.save(commit = False)
+                    # sauvegarde dans la table Identifiants d'un nouveau taxon
                     new_inst.save(using='simagree')
-                    # sauvegarde dans la table Nomenclature
+                    # mise à jour des relations vers le nouveau taxon
                     Nomenclature.objects.using('simagree').filter(taxon=inst_id.taxon).update(taxon=new_inst)
+                    # suppression de l'ancien taxon
                     inst_id.delete()
+
+                    # sauvegarde des données dans la table Nomenclature
                     values = nom_form.save(commit = False)
+
+                    # lien entre les 2 tables
                     values.taxon = new_inst
+
+                    # vérification du code synonyme
+                    if values.codesyno == 0:
+                        Nomenclature.objects.using('simagree').filter(Q(taxon=new_inst.taxon) & Q(codesyno=0)).update(codesyno=1)
+
                     values.save(using='simagree')
                 else:
                     # sauvegarde dans la table Identifiants
@@ -123,11 +144,16 @@ def modify(req, id):
                     # sauvegarde dans la table Nomenclature
                     values = nom_form.save(commit = False)
                     values.taxon = inst_id
+                    # vérification du code synonyme
+                    if values.codesyno == 0:
+                        Nomenclature.objects.using('simagree').filter(Q(taxon=inst_id.taxon) & Q(codesyno=0)).update(codesyno=1)
                     values.save(using='simagree')
 
         return render(req, 'modify.html', {'formset' : id_form, 'form2' : nom_form})
     else:
         return redirect(reverse(connexion))
+
+########## Vues pour la connexion ##########
 
 def connexion(request):
     error = False
@@ -149,3 +175,26 @@ def connexion(request):
 def deconnexion(request):
     logout(request)
     return redirect(reverse(connexion))
+
+
+
+########## Vues pour la gestion des thèmes ##########
+
+def themes(req):
+    if not req.user.is_authenticated:
+        return redirect(reverse(connexion))
+    themes_list = Themes.objects.using('simagree').all()
+    if req.method == 'GET':
+        form = AddThemeForm(req.GET or None)
+    elif req.method == 'POST':
+        form = AddThemeForm(req.POST)
+        if form.is_valid():
+            inst = form.save(commit = False)
+            inst.save(using='simagree')
+    return render(req, 'add_theme.html', {'form' : form, 'themes_list' : themes_list})
+
+def deleteTheme(req):
+    if req.method == 'POST':
+        item = Themes.objects.using('simagree').get(id = req.POST.get('ident'))
+        item.delete()
+        return redirect(reverse(themes))
