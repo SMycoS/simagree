@@ -3,6 +3,8 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse
 from django.db.models import Q
+from django.core import serializers
+
 
 
 
@@ -40,6 +42,9 @@ def search(req):
 
 def add(req):
     if req.user.is_authenticated:
+        # récupération de l'ensemble des taxons
+        all_taxons = Nomenclature.objects.using('simagree').select_related('taxon').only('taxon_id', 'genre', 'espece')
+        data = serializers.serialize("json", all_taxons)
         # première requête
         if req.method == 'GET':
             id_form = AddFormId(req.GET or None)
@@ -61,7 +66,7 @@ def add(req):
                     Nomenclature.objects.using('simagree').filter(Q(taxon=new_inst.taxon) & Q(codesyno=0)).update(codesyno=1)
                 values.save(using='simagree')
 
-        return render(req, 'add.html', {'formset' : id_form, 'form2' : nom_form})
+        return render(req, 'add.html', {'formset' : id_form, 'form2' : nom_form, 'all_tax' : data})
     else:
         return redirect(reverse(connexion))
 

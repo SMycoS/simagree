@@ -2,6 +2,10 @@
 
 {% block content %}
 <div class="container formDiv">
+  <!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#taxonModal">
+    Sélection automatique du taxon
+  </button>
     <form class="form-horizontal" method="POST" action="">
         {% csrf_token %}
         {{ formset.non_field_errors }}
@@ -25,4 +29,38 @@
         </div>
         </form>
 </div>
+{% endblock %}
+
+{% block extra %}
+  <!-- Modal -->
+  <div class="modal fade" id="taxonModal" tabindex="-1" role="dialog" aria-labelledby="taxonModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taxonModalLabel">Sélection du taxon</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form action="">
+            <div class="form-group">
+              <label for="prevTax">Insérer après</label>
+              <select name="prevTax" id="prevTaxSelect" class="chosen-select">
+              </select>
+              <button id="taxBtn" class="btn btn-primary">Go</button>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  var tax = {{ all_tax|safe }};
+</script>
 {% endblock %}

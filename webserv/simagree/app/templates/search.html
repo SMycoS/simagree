@@ -4,7 +4,43 @@
     <section>
         <div class="container-fluid searchForm">
             <form action="/search/" method="GET">
-                {{ form }}
+                <div class="row">
+                    <div class="form-group col-3">
+                        <label for="{{ form.nomUsuel.id_for_label }}">Nom usuel : </label>
+                        {{ form.nomUsuel }}
+                        <small class="form-text text-muted">{{ form.nomUsuel.errors }}</small>
+                    </div>
+                    <div class="form-group col-3">
+                        <label for="{{ form.genre.id_for_label }}">Genre : </label>
+                        {{ form.genre }}
+                        <small class="form-text text-muted">{{ form.genre.errors }}</small>
+                    </div>
+                    <div class="form-group col-3">
+                        <label for="{{ form.espece.id_for_label }}">Espèce : </label>
+                        {{ form.espece }}
+                        <small class="form-text text-muted">{{ form.espece.errors }}</small>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-md-3">
+                        <label for="{{ form.comestible.id_for_label }}">Comestibilité : </label>
+                        {{ form.comestible }}
+                        <small class="form-text text-muted">{{ form.comestible.errors }}</small>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-2">
+                        <label for="{{ form.presentSms.id_for_label }}">Présent à la SMS uniquement : </label>
+                        {{ form.presentSms }}
+                        <small class="form-text text-muted">{{ form.presentSms.errors }}</small>
+                    </div>
+                    <div class="form-group col-2">
+                        <label for="{{ form.displaySyno.id_for_label }}">Afficher les synonymes : </label>
+                        {{ form.displaySyno }}
+                        <small class="form-text text-muted">{{ form.displaySyno.errors }}</small>
+                    </div>
+                </div>
+
                 <button type="submit" class="btn btn-primary">Recherche</button>
             </form>
         </div>

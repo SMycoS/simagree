@@ -11,9 +11,10 @@
 
     <link rel="stylesheet" type="text/less" media="screen" href="{% static 'css/master.less' %}" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/less.js/3.0.4/less.js"></script>
-    <script src="{% static 'js/master.js' %}"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" type="test/css" href="{% static 'js/chosen_v1/chosen.min.css' %}">
+    <script src="{% static 'js/chosen_v1/chosen.jquery.min.js' %}"></script>
 </head>
 <body>
     <header>
@@ -64,5 +65,9 @@
     {% endblock %}
     {% block content %}
     {% endblock %}
+    {% block extra %}
+    {% endblock %}
+    <script type="text/javascript" src="{% static 'js/master.js' %}"></script>
+
 </body>
 </html>
