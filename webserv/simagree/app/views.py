@@ -48,31 +48,34 @@ def add(req):
         # première requête
         if req.method == 'GET':
             id_form = AddFormId(req.GET or None)
-            nom_form = AddFormNom(req.GET or None)
+            #nom_form = AddFormNom(req.GET or None)
         # après envoi du formulaire
         elif req.method == 'POST':
             id_form = AddFormId(req.POST)
-            nom_form = AddFormNom(req.POST)
-            if id_form.is_valid() and nom_form.is_valid():
+            #nom_form = AddFormNom(req.POST)
+            if id_form.is_valid():
                 # sauvegarde dans la table Identifiants
-                inst = id_form.save(commit = False)
-                inst.save(using='simagree')
+                print("VALID BOI")
+                ##inst = id_form.save(commit = False)
+                ##inst.save(using='simagree')
 
                 # sauvegarde dans la table Nomenclature
-                values = nom_form.save(commit = False)
-                values.taxon = inst
+                #values = nom_form.save(commit = False)
+                #values.taxon = inst
                 # vérification du code synonyme
-                if values.codesyno == 0:
-                    Nomenclature.objects.using('simagree').filter(Q(taxon=new_inst.taxon) & Q(codesyno=0)).update(codesyno=1)
-                values.save(using='simagree')
+                #if values.codesyno == 0:
+                 #   Nomenclature.objects.using('simagree').filter(Q(taxon=new_inst.taxon) & Q(codesyno=0)).update(codesyno=1)
+                #values.save(using='simagree')
 
-        return render(req, 'add.html', {'formset' : id_form, 'form2' : nom_form, 'all_tax' : data})
+        return render(req, 'add.html', {'form' : id_form, 'all_tax' : data})
     else:
         return redirect(reverse(connexion))
 
 
 def addPartial(req):
     if req.user.is_authenticated:
+        all_taxons = Nomenclature.objects.using('simagree').select_related('taxon').only('taxon_id', 'genre', 'espece')
+        data = serializers.serialize("json", all_taxons)
         if req.method == 'GET':
             nom_form = AddFormPartial(req.GET or None)
         elif req.method == 'POST':
@@ -84,9 +87,9 @@ def addPartial(req):
                 values.taxon = inst
                 # vérification du code synonyme
                 if values.codesyno == 0:
-                    Nomenclature.objects.using('simagree').filter(Q(taxon=new_inst.taxon) & Q(codesyno=0)).update(codesyno=1)
+                    Nomenclature.objects.using('simagree').filter(Q(taxon=inst.taxon) & Q(codesyno=0)).update(codesyno=1)
                 values.save(using='simagree')
-        return render(req, 'add_partial.html', {'form' : nom_form})
+        return render(req, 'add_partial.html', {'form' : nom_form, 'all_tax' : data})
     else:
         return redirect(reverse(connexion))
 

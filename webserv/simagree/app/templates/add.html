@@ -6,27 +6,148 @@
 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#taxonModal">
     Sélection automatique du taxon
   </button>
-    <form class="form-horizontal" method="POST" action="">
+    <form class="form-horizontal" method="POST" action=".">
         {% csrf_token %}
-        {{ formset.non_field_errors }}
-        {% for field in formset %}
-        <div class="form-group">
-            <label for="{{ field.name }}">{{ field.label }}</label>
-            {{ field }}
-            <small class="form-text text-muted">{{ field.errors }}</small>
+        {{ form.non_field_errors }}
+        <div class="row">
+          <div class="form-group col-3">
+            <label for="{{ form.taxon.id_for_label }}">Taxon : </label>
+            {{ form.taxon }}
+            <small class="form-text text-muted">{{ form.taxon.errors }}</small>
           </div>
-        {% endfor %}
-        {{ form2.non_field_errors}}
-        {% for field in form2 %}
-        <div class="form-group">
-            <label for="{{ field.name }}">{{ field.label }}</label>
-            {{ field }}
-            <small class="form-text text-muted">{{ field.errors }}</small>
+          <div class="form-group col-3">
+            <label for="{{ form.fiche.id_for_label }}">Fiche : </label>
+            {{ form.fiche }}
+            <small class="form-text text-muted">{{ form.fiche.errors }}</small>
           </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary">Créer</button>
-
         </div>
+        <div class="row">
+          <div class="form-group col-9">
+            <label for="{{ form.noms.id_for_label }}">Noms : </label>
+            {{ form.noms }}
+            <small class="form-text text-muted">{{ form.noms.errors }}</small>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group col-3">
+            <label for="{{ form.comestible.id_for_label }}">Comestibilité : </label>
+            {{ form.comestible }}
+            <small class="form-text text-muted">{{ form.comestible.errors }}</small>
+          </div>
+          <div class="form-group col-3">
+            <label for="{{ form.sms.id_for_label }}">Présent à la SMS : </label>
+            {{ form.sms }}
+            <small class="form-text text-muted">{{ form.sms.errors }}</small>
+          </div>
+          <div class="form-group col-3">
+            <label for="{{ form.a_imprimer.id_for_label }}">A imprimer : </label>
+            {{ form.a_imprimer }}
+            <small class="form-text text-muted">{{ form.a_imprimer.errors }}</small>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group col-3">
+            <label for="{{ form.lieu.id_for_label }}">Lieu : </label>
+            {{ form.lieu }}
+            <small class="form-text text-muted">{{ form.lieu.errors }}</small>
+          </div>
+          <div class="form-group col-3">
+            <label for="{{ form.apparition.id_for_label }}">Apparition : </label>
+            {{ form.apparition }}
+            <small class="form-text text-muted">{{ form.apparition.errors }}</small>
+          </div>
+          <div class="form-group col-3">
+            <label for="{{ form.ecologie.id_for_label }}">Ecologie : </label>
+            {{ form.ecologie }}
+            <small class="form-text text-muted">{{ form.ecologie.errors }}</small>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group col-6">
+            <label for="{{ form.notes.id_for_label }}">Notes : </label>
+            {{ form.notes }}
+            <small class="form-text text-muted">{{ form.notes.errors }}</small>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group col-3">
+            <label for="{{ form.icono1.id_for_label }}">Iconographie (1) : </label>
+            {{ form.icono1 }}
+            <small class="form-text text-muted">{{ form.icono1.errors }}</small>
+          </div>
+          <div class="form-group col-3">
+            <label for="{{ form.icono2.id_for_label }}">Iconographie (2) : </label>
+            {{ form.icono2 }}
+            <small class="form-text text-muted">{{ form.icono2.errors }}</small>
+          </div>
+          <div class="form-group col-3">
+            <label for="{{ form.icono3.id_for_label }}">Iconographie (3) : </label>
+            {{ form.icono3 }}
+            <small class="form-text text-muted">{{ form.icono3.errors }}</small>
+          </div>
+        </div>
+        {{form.theme1}}
+        {{form.theme2}}
+        {{form.theme3}}
+        {{form.theme4}}
+
+        <hr>
+
+        {{ form2.non_field_errors}}
+        <div class="row">
+          <div class="form-group col-3">
+            <label for="{{ form2.genre.id_for_label }}">Genre : </label>
+            {{ form2.genre }}
+            <small class="form-text text-muted">{{ form2.genre.errors }}</small>
+          </div>
+          <div class="form-group col-3">
+            <label for="{{ form2.espece.id_for_label }}">Espèce : </label>
+            {{ form2.espece }}
+            <small class="form-text text-muted">{{ form2.espece.errors }}</small>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group col-3">
+            <label for="{{ form2.variete.id_for_label }}">Variété : </label>
+            {{ form2.variete }}
+            <small class="form-text text-muted">{{ form2.variete.errors }}</small>
+          </div>
+          <div class="form-group col-3">
+            <label for="{{ form2.forme.id_for_label }}">Forme : </label>
+            {{ form2.forme }}
+            <small class="form-text text-muted">{{ form2.forme.errors }}</small>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group col-3">
+            <label for="{{ form2.autorite.id_for_label }}">Autorité : </label>
+            {{ form2.autorite }}
+            <small class="form-text text-muted">{{ form2.autorite.errors }}</small>
+          </div>
+          <div class="form-group col-3">
+            <label for="{{ form2.moser.id_for_label }}">MOSER : </label>
+            {{ form2.moser }}
+            <small class="form-text text-muted">{{ form2.moser.errors }}</small>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group col-2">
+            <label for="{{ form2.biblio1.id_for_label }}">Bibliographie (1) : </label>
+            {{ form2.biblio1 }}
+            <small class="form-text text-muted">{{ form2.biblio1.errors }}</small>
+          </div>
+          <div class="form-group col-2">
+            <label for="{{ form2.biblio2.id_for_label }}">Bilbiographie (2) : </label>
+            {{ form2.biblio2 }}
+            <small class="form-text text-muted">{{ form2.biblio2.errors }}</small>
+          </div>
+          <div class="form-group col-2">
+            <label for="{{ form2.bilio3.id_for_label }}">Bibliographie (3) : </label>
+            {{ form2.biblio3 }}
+            <small class="form-text text-muted">{{ form2.biblio3.errors }}</small>
+          </div>
+        </div>
+          <button type="submit" class="btn btn-primary">Créer</button>
         </form>
 </div>
 {% endblock %}
@@ -51,10 +172,6 @@
               <button id="taxBtn" class="btn btn-primary">Go</button>
             </div>
           </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary">Save changes</button>
         </div>
       </div>
     </div>

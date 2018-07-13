@@ -68,6 +68,8 @@
     {% block extra %}
     {% endblock %}
     <script type="text/javascript" src="{% static 'js/master.js' %}"></script>
-
+    {% if request.resolver_match.url_name == 'add' or request.resolver_match.url_name == 'addPart' %}
+    <script type="text/javascript" src="{% static 'js/generateTaxon.js' %}"></script>
+    {% endif %}
 </body>
 </html>

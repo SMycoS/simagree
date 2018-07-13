@@ -20,8 +20,8 @@ class AddFormNom(forms.ModelForm):
     class Meta:
         model = Nomenclature
         fields = '__all__'
-        exclude = ('taxon'),
-        widgets = { 'codesyno' : forms.NumberInput(attrs={'class' : 'form-control'}),
+        exclude = ('taxon', 'codesyno'),
+        widgets = {
             'genre' : forms.TextInput(attrs={'class' : 'form-control'}),
             'espece' : forms.TextInput(attrs={'class' : 'form-control'}),
             'variete' : forms.TextInput(attrs={'class' : 'form-control'}),
@@ -36,8 +36,8 @@ class AddFormNom(forms.ModelForm):
 class AddFormId(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
-        self.list = Themes.objects.using('simagree').all()
         super(AddFormId, self).__init__(*args, **kwargs)
+        self.list = Themes.objects.using('simagree').all()
         self.fields['theme1'].queryset = self.list
         self.fields['theme1'].required = False
         self.fields['theme2'].queryset = self.list
@@ -67,7 +67,7 @@ class AddFormId(forms.ModelForm):
         }
 
 class AddFormPartial(forms.ModelForm):
-    tax = forms.IntegerField(label = 'Taxon')
+    tax = forms.IntegerField(label = 'Taxon', widget=forms.NumberInput(attrs={'class' : 'form-control'}))
 
     def clean_tax(self):
         form_tax = self.cleaned_data.get("tax")
@@ -83,7 +83,6 @@ class AddFormPartial(forms.ModelForm):
         fields = '__all__'
         exclude = ('taxon'),
         widgets = {
-            'tax' : forms.NumberInput(attrs={'class' : 'form-control'}),
             'codesyno' : forms.NumberInput(attrs={'class' : 'form-control'}),
             'genre' : forms.TextInput(attrs={'class' : 'form-control'}),
             'espece' : forms.TextInput(attrs={'class' : 'form-control'}),
