@@ -4,60 +4,72 @@
 
 from reportlab.pdfgen import canvas
 
-def generateFiche(size, com):
+# Génère une fiche au format PDF
+# Prend un doublet (size) en argument : taille en points
+# un nom de fichier
+# et un dictionnaire de valeurs (vars)
+def generateFiche(pdf_filename, vars, size = (325.984, 240.945)):
     sizeX = size[0]
     sizeY = size[1]
     midX = size[0] / 2
     midY = size[1] / 2
     marginX = 20
     marginY = 20
-    print(midX, midY)
-    cnv = canvas.Canvas('test.pdf', pagesize = size, verbosity = 1) # 115 x 85 mm
+    cnv = canvas.Canvas(pdf_filename, pagesize = size, verbosity = 1) # 115 x 85 mm
 
     # Theme
-    cnv.drawString(marginX, sizeY - (marginY + 5), 'APX 3')
+    if 'theme' in vars.keys():
+        cnv.drawString(marginX, sizeY - (marginY + 5), vars['theme'])
 
-    # Numero de fiche
-    cnv.drawRightString(sizeX - marginX, sizeY - (marginY + 5), 'Fiche #2458')
+    # Numero de fiche (Obligatoire si on génère une fiche)
+    cnv.drawRightString(sizeX - marginX, sizeY - (marginY + 5), vars['fiche'])
 
-    # Genre et Espece
-    cnv.setFont('Helvetica', 16)
-    cnv.drawCentredString(midX, sizeY - (3 * marginY) + 5, 'Foo Bar')
+    # Genre et Espece (Obligatoires dans la BDD)
+    cnv.setFont('Helvetica-Bold', 16)
+    cnv.drawCentredString(midX, sizeY - (3 * marginY) + 5, vars['genre'] + ' ' + vars['espece'])
 
     # Variete et Forme
+    var_for = ''
+    if 'variete' in vars.keys():
+        var_for = vars['variete']
+    if 'forme' in vars.keys():
+        var_for += ' ' + vars['forme']
     cnv.setFont('Helvetica', 11)
-    cnv.drawCentredString(midX, sizeY - (4 * marginY) + 5, 'Variété / Forme')
+    cnv.drawCentredString(midX, sizeY - (4 * marginY) + 5, var_for)
 
     # Rectangle du haut
     cnv.setLineWidth(2)
     cnv.rect(0 + marginX, midY + (1.5 * marginY) + 5, sizeX - (2 * marginX), sizeY / 5 , fill = False)
 
     # Noms usuels
-    cnv.drawString(marginX, midY + (0.5 * marginY), 'Noms usuels, ...')
+    if 'noms' in vars.keys():
+        cnv.drawString(marginX, midY + (0.5 * marginY), vars['noms'])
 
     # Texte comestibilite
-    if (com == 'C'):
-        com_txt = 'Comestible'
-        com_img = 'pdf_assets/Comest.bmp'
-    elif (com == 'NC'):
-        com_txt = 'Non Comestible'
-        com_img = 'NonCom.bmp'
-    elif (com == 'T'):
-        com_txt = 'Toxique'
-        com_img = 'Toxique.bmp'
-    else:
-        com_txt = 'Mortel'
-        com_img = 'Mortel.bmp'
+    if 'comestibilite' in vars.keys():
+        if (vars['comestibilite'] == 'C'):
+            com_txt = 'Comestible'
+            com_img = 'pdf_assets/Comest.bmp'
+        elif (vars['comestibilite'] == 'NC'):
+            com_txt = 'Non Comestible'
+            com_img = 'pdf_assets/NonCom.bmp'
+        elif (vars['comestibilite'] == 'T'):
+            com_txt = 'Toxique'
+            com_img = 'pdf_assets/Toxique.bmp'
+        else:
+            com_txt = 'Mortel'
+            com_img = 'pdf_assets/Mortel.bmp'
 
-    img_width = 138.75 / 2.5
-    img_height = 131.25 / 2.5
-    
-    cnv.drawImage(com_img, sizeX - marginX - img_width, midY - (1.5 * marginY), width = img_width, height= img_width)
-    cnv.drawRightString(sizeX - marginX, midY - (2 * marginY) - 5, com_txt)
+        img_width = 138.75 / 2.5
+        img_height = 131.25 / 2.5
+        
+        cnv.drawImage(com_img, sizeX - marginX - img_width, midY - (1.5 * marginY), width = img_width, height= img_width)
+        cnv.drawRightString(sizeX - marginX, midY - (2 * marginY) - 5, com_txt)
 
     # Observations
-    cnv.setFont('Helvetica', 10)
-    cnv.drawString(marginX + 10, (sizeX / 6) - 5, 'Blablablablablabla . . .')
+    if 'obs' in vars.keys():
+        cnv.setFont('Helvetica', 10)
+        cnv.drawString(marginX + 10, (sizeX / 6) - 5, vars['obs'])
 
     # Rectangle du bas
     cnv.setLineWidth(1)
@@ -70,14 +82,15 @@ def generateFiche(size, com):
 
     cnv.save()
 
-def generateFicheTheme(size, com):
+# Génère une fiche thématique
+def generateFicheTheme(pdf_filename, vars, size = (325.984, 240.945)):
     sizeX = size[0]
     sizeY = size[1]
     midX = size[0] / 2
     midY = size[1] / 2
     marginX = 20
     marginY = 20
-    cnv = canvas.Canvas('test.pdf', pagesize = size, verbosity = 1) # 115 x 85 mm
+    cnv = canvas.Canvas(pdf_filename, pagesize = size, verbosity = 1) # 115 x 85 mm
 
     # Rectangle du haut
     cnv.setStrokeColorRGB((133 / 255), (133 / 255), (133 / 255))
@@ -88,50 +101,57 @@ def generateFicheTheme(size, com):
     # Numero de fiche
     cnv.setStrokeColorRGB(0,0,0)
     cnv.setFillColorRGB(1,1,1)
-    cnv.drawRightString(sizeX - marginX, sizeY - (marginY + 5), 'Fiche #2458')
+    cnv.drawRightString(sizeX - marginX, sizeY - (marginY + 5), vars['fiche'])
 
     # Theme
     cnv.drawString(marginX, sizeY - (marginY + 5), 'Theme')
     cnv.setFillColorRGB(0,1,1)
-    cnv.setFont('Helvetica', 14)
-    cnv.drawCentredString(midX, sizeY - (marginY + 5), ' themevar') 
+    cnv.setFont('Helvetica-Bold', 14)
+    cnv.drawCentredString(midX, sizeY - (marginY + 5), vars['theme']) 
 
     # Genre et Espece
     cnv.setFillColorRGB(0,0,0)
-    cnv.setFont('Helvetica', 14)
-    cnv.drawString(marginX, sizeY - (3 * marginY), 'Foo Bar')
+    cnv.drawString(marginX, sizeY - (3 * marginY), vars['genre'] + ' ' + vars['espece'])
 
     # Variete et Forme
+    var_for = ''
+    if 'variete' in vars.keys():
+        var_for = vars['variete']
+    if 'forme' in vars.keys():
+        var_for += ' ' + vars['forme']
     cnv.setFont('Helvetica', 11)
-    cnv.drawString(marginX, sizeY - (4 * marginY), 'Variété / Forme')
+    cnv.drawString(marginX, sizeY - (4 * marginY), var_for)
 
 
     # Noms usuels
-    cnv.drawString(2 * marginX, midY + (0.5 * marginY), 'Noms usuels, ...')
+    if 'noms' in vars.keys():
+        cnv.drawString(2 * marginX, midY + (0.5 * marginY), vars['noms'])
 
     # Texte comestibilite
-    if (com == 'C'):
-        com_txt = 'Comestible'
-        com_img = 'pdf_assets/Comest.bmp'
-    elif (com == 'NC'):
-        com_txt = 'Non Comestible'
-        com_img = 'NonCom.bmp'
-    elif (com == 'T'):
-        com_txt = 'Toxique'
-        com_img = 'Toxique.bmp'
-    else:
-        com_txt = 'Mortel'
-        com_img = 'Mortel.bmp'
+    if 'comestibilite' in vars.keys():
+        if (vars['comestibilite'] == 'C'):
+            com_txt = 'Comestible'
+            com_img = 'pdf_assets/Comest.bmp'
+        elif (vars['comestibilite'] == 'NC'):
+            com_txt = 'Non Comestible'
+            com_img = 'pdf_assets/NonCom.bmp'
+        elif (vars['comestibilite'] == 'T'):
+            com_txt = 'Toxique'
+            com_img = 'pdf_assets/Toxique.bmp'
+        else:
+            com_txt = 'Mortel'
+            com_img = 'pdf_assets/Mortel.bmp'
 
-    img_width = 138.75 / 2.5
-    img_height = 131.25 / 2.5
-    
-    cnv.drawImage(com_img, sizeX - marginX - img_width, midY + (0.5 * marginY), width = img_width, height= img_width)
-    cnv.drawRightString(sizeX - marginX, midY - (0 * marginY) - 5, com_txt)
+        img_width = 138.75 / 2.5
+        img_height = 131.25 / 2.5
+        
+        cnv.drawImage(com_img, sizeX - marginX - img_width, midY + (0.5 * marginY), width = img_width, height= img_width)
+        cnv.drawRightString(sizeX - marginX, midY - (0 * marginY) - 5, com_txt)
 
     # Observations
-    cnv.setFont('Helvetica', 10)
-    cnv.drawString(marginX + 10, (sizeX / 6) - 5, 'Blablablablablabla . . .')
+    if 'obs' in vars.keys():
+        cnv.setFont('Helvetica', 10)
+        cnv.drawString(marginX + 10, (sizeX / 6) - 5, vars['obs'])
 
     # Rectangle du bas
     cnv.setLineWidth(1)
@@ -144,4 +164,24 @@ def generateFicheTheme(size, com):
 
     cnv.save()
 
-generateFicheTheme((325.984, 240.945), 'C')
+config_test_1 = {
+    'theme' : 'APX 225',
+    'fiche' : '1125',
+    'genre' : 'Fooescens',
+    'espece' : 'Barescentia',
+    'variete' : 'variata',
+    'noms' : 'Foobarista',
+    'forme' : 'formosa',
+    'comestibilite' : 'M',
+    'obs' : "C'est joli",
+}
+
+config_test_2 = {
+    'fiche' : '1125',
+    'genre' : 'Fooescens',
+    'espece' : 'Barescentia',
+    'variete' : 'variata',
+    'noms' : 'Foobarista'
+}
+generateFicheTheme(pdf_filename = 'test1.pdf', vars = config_test_1)
+generateFiche(pdf_filename = 'test2.pdf', vars = config_test_2)
