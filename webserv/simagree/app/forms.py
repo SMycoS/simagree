@@ -96,6 +96,24 @@ class AddFormPartial(forms.ModelForm):
 
         }
 
+class ModForm(forms.ModelForm):
+    class Meta:
+        model = Nomenclature
+        fields = '__all__'
+        exclude = ('taxon'),
+        widgets = {
+            'genre' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'espece' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'variete' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'forme' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'autorite' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'moser' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'biblio1' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'biblio2' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'biblio3' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'codesyno' : forms.TextInput(attrs={'class' : 'form-control'}),
+        }
+
 
 ########## CONNEXION ##########
 

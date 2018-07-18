@@ -1,0 +1,9 @@
+﻿Numéro;Codesyno;Genre;Espèce;Variété;Forme;Autorité;Biblio1;Biblio2;Biblio3;Tri MOSER;Date
+100;0;Amanita;friabilis;;;(P. Karst.) Bas 1974;M;IF/MB;TAX;1000;30/06/2015
+100;1;Amanita;alnicola;;;Rouzeau & F. Massart 1967 [Nom. inval.];M;;;1001;30/06/2015
+100;1;Amanita;sternbergii;;;Velen.1920;M;;;1001;30/06/2015
+100;2;Amanitopsis;vaginata;friabilis;;P. Karst. 1879;;;;1002;30/06/2015
+100;2;Amanitopsis;vaginata;sternbergii;;(Velen.) J. Favre 1960;GAR;;;1002;30/06/2015
+200;0;Amanita;ceciliae;;;(Berk. & Broome) Bas 1984;GAR;IF/MB;TAX;2000;30/06/2015
+200;1;Amanita;inaurata;;;Secr. ex Gillet 1874;M;;;2001;30/06/2015
+200;1;Amanita;strangulata;;;(Fr.) Quél. 1872;M;;;2001;30/06/2015

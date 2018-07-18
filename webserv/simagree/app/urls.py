@@ -22,11 +22,13 @@ urlpatterns = [
     url(r'^search/$', views.search, name = 'search'),
     url(r'^add_complete/$', views.add, name = 'add'),
     url(r'add_partial/$', views.addPartial, name = 'addPart'),
-    url(r'^details/(?P<tax>[0-9]+)/$', views.details, name = 'details'),
+    url(r'^details/(?P<id_item>[0-9]+)/$', views.details, name = 'details'),
     url(r'^delete/$', views.deleteConfirm, name = 'delete'),
     url(r'^modify/(?P<id>[0-9]+)/$', views.modify, name = 'modify'),
     url(r'^login/$', views.connexion, name = 'login'),
     url(r'^logout/$', views.deconnexion, name = 'logout'),
     url(r'^themes/$', views.themes, name = 'themes'),
     url(r'^deletetheme/$', views.deleteTheme, name = 'themes_del'),
+    url(r'^file/(?P<id_item>[0-9]+)/$', views.send_file, name = 'sendfile'),
+
 ]

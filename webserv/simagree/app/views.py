@@ -4,6 +4,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse
 from django.db.models import Q
 from django.core import serializers
+from wsgiref.util import FileWrapper
+import os
 
 
 
@@ -11,8 +13,9 @@ from django.core import serializers
 # Create your views here.
 
 from .models import Identifiants, Themes, Nomenclature
-from .forms import SearchForm, AddFormNom, AddFormId, AddFormPartial, ConnexionForm, AddThemeForm
+from .forms import SearchForm, AddFormNom, AddFormId, AddFormPartial, ConnexionForm, AddThemeForm, ModForm
 from .searchparser import dbRequest
+from .pdfgen import generateFiche
 
 def accueil(req):
     return render(req, 'home.html')
@@ -93,10 +96,11 @@ def addPartial(req):
     else:
         return redirect(reverse(connexion))
 
-def details(req, tax):
+def details(req, id_item):
     if req.user.is_authenticated:
-        item = Identifiants.objects.using('simagree').get(taxon = tax)
-        return render(req, 'details.html', {'shroom' : item})
+        item = Nomenclature.objects.using('simagree').get(id = id_item)
+        others = Nomenclature.objects.using('simagree').filter(Q(taxon = item.taxon) & Q(id != id_item)).values('genre', 'espece', 'id')
+        return render(req, 'details.html', {'shroom' : item, 'others' : others})
     else:
         return redirect(reverse(connexion))
 
@@ -109,55 +113,20 @@ def deleteConfirm(req):
 def modify(req, id):
     if req.user.is_authenticated:
         inst_nom = Nomenclature.objects.using('simagree').get(id = id)
-        inst_id = Identifiants.objects.using('simagree').get(taxon=inst_nom.taxon_id)
         # première requête
         if req.method == 'GET':
-            id_form = AddFormId(req.GET or None, instance=inst_id)
-            nom_form = AddFormNom(req.GET or None, instance=inst_nom)
+            nom_form = ModForm(req.GET or None, instance=inst_nom)
         # après envoi du formulaire
         elif req.method == 'POST':
-            # si le taxon a été modifié
-            if int(req.POST.get('taxon')) != inst_id.taxon:
-                id_form = AddFormId(req.POST)
-            else:
-                id_form = AddFormId(req.POST, instance=inst_id)
-            nom_form = AddFormNom(req.POST, instance=inst_nom)
-            if id_form.is_valid() and nom_form.is_valid():
-                # taxon modifié
-                if id_form.cleaned_data['taxon'] != inst_id.taxon:
-                    new_inst = id_form.save(commit = False)
-                    # sauvegarde dans la table Identifiants d'un nouveau taxon
-                    new_inst.save(using='simagree')
-                    # mise à jour des relations vers le nouveau taxon
-                    Nomenclature.objects.using('simagree').filter(taxon=inst_id.taxon).update(taxon=new_inst)
-                    # suppression de l'ancien taxon
-                    inst_id.delete()
+            if nom_form.is_valid():
+                # sauvegarde dans la table Nomenclature
+                values = nom_form.save(commit = False)
+                # vérification du code synonyme
+                if values.codesyno == 0:
+                    Nomenclature.objects.using('simagree').filter(Q(taxon=inst_id.taxon) & Q(codesyno=0)).update(codesyno=1)
+                values.save(using='simagree')
 
-                    # sauvegarde des données dans la table Nomenclature
-                    values = nom_form.save(commit = False)
-
-                    # lien entre les 2 tables
-                    values.taxon = new_inst
-
-                    # vérification du code synonyme
-                    if values.codesyno == 0:
-                        Nomenclature.objects.using('simagree').filter(Q(taxon=new_inst.taxon) & Q(codesyno=0)).update(codesyno=1)
-
-                    values.save(using='simagree')
-                else:
-                    # sauvegarde dans la table Identifiants
-                    inst_id = id_form.save(commit = False)
-                    inst_id.save(using='simagree')
-
-                    # sauvegarde dans la table Nomenclature
-                    values = nom_form.save(commit = False)
-                    values.taxon = inst_id
-                    # vérification du code synonyme
-                    if values.codesyno == 0:
-                        Nomenclature.objects.using('simagree').filter(Q(taxon=inst_id.taxon) & Q(codesyno=0)).update(codesyno=1)
-                    values.save(using='simagree')
-
-        return render(req, 'modify.html', {'formset' : id_form, 'form2' : nom_form})
+        return render(req, 'modify.html', {'form' : id_form})
     else:
         return redirect(reverse(connexion))
 
@@ -206,3 +175,46 @@ def deleteTheme(req):
         item = Themes.objects.using('simagree').get(id = req.POST.get('ident'))
         item.delete()
         return redirect(reverse(themes))
+
+
+########## Vues pour la gestion des pdf ##########
+
+def send_file(request, id_item):
+    """
+    # Generation du pdf
+    item = Nomenclature.object.using('simagree').select_related('taxon').filter(id = id_item).values(
+        'theme',
+        'fiche',
+        'genre',
+        'espece',
+        'variete',
+        'taxon__noms',
+        'forme' ,
+        'taxon__comestible',
+    )
+    vars = {
+        'theme' : ,
+        'fiche' : '1125',
+        'genre' : 'Fooescens',
+        'espece' : 'Barescentia',
+        'variete' : 'variata',
+        'noms' : 'Foobarista',
+        'forme' : 'formosa',
+        'comestibilite' : 'M',
+        'obs' : "C'est joli",
+        }
+    save_name = '/static/fiches/' + id_item + '.pdf'
+    generateFiche(save_name, )
+    """
+    # Envoi de fichier
+
+    """                                                                         
+    Send a file through Django without loading the whole file into              
+    memory at once. The FileWrapper will turn the file object into an           
+    iterator for chunks of 8KB.                                                 
+    """
+    filename = id + '.pdf'                               
+    wrapper = FileWrapper(file(filename))
+    response = HttpResponse(wrapper, content_type='text/plain')
+    response['Content-Length'] = os.path.getsize(filename)
+    return response

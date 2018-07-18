@@ -163,25 +163,3 @@ def generateFicheTheme(pdf_filename, vars, size = (325.984, 240.945)):
 
 
     cnv.save()
-
-config_test_1 = {
-    'theme' : 'APX 225',
-    'fiche' : '1125',
-    'genre' : 'Fooescens',
-    'espece' : 'Barescentia',
-    'variete' : 'variata',
-    'noms' : 'Foobarista',
-    'forme' : 'formosa',
-    'comestibilite' : 'M',
-    'obs' : "C'est joli",
-}
-
-config_test_2 = {
-    'fiche' : '1125',
-    'genre' : 'Fooescens',
-    'espece' : 'Barescentia',
-    'variete' : 'variata',
-    'noms' : 'Foobarista'
-}
-generateFicheTheme(pdf_filename = 'test1.pdf', vars = config_test_1)
-generateFiche(pdf_filename = 'test2.pdf', vars = config_test_2)
