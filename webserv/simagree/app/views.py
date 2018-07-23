@@ -251,3 +251,33 @@ def addList(req):
         form = AddListForm()
 
     return render(req, 'listes_create.html', {'form' : form, 'all_tax' : all_taxons})
+
+def showLists(req):
+    if not req.user.is_authenticated:
+        return redirect(reverse(connexion))
+    #listes = ListeRecolte.objects.using('simagree').all().values('date', 'lieu', 'id')
+    listes = []
+    return render(req, 'listes.html', {'listes' : listes})
+
+def detaisList(req, id_liste):
+    if not req.user.is_authenticated:
+        return redirect(reverse(connexion))
+    liste = ListeRecolte.objects.using('simagree').get(id = id_liste)
+    taxons = []
+    for i in liste.taxons.all():
+        if (int(i.taxon) not in taxons):
+            taxons.append(int(i.taxon))
+    items = Nomenclature.objects.using('simagree').select_related('taxon').filter(Q(taxon__in = taxons) & Q(codesyno = 0)).values('genre', 'espece')
+    return render(req, 'listes.html', {'liste' : liste, 'items' : items})
+
+def modList(req, id_liste):
+    if not req.user.is_authenticated:
+        return redirect(reverse(connexion))
+    liste = ListeRecolte.objects.using('simagree').get(id = id_liste)
+    all_taxons = Nomenclature.objects.using('simagree').select_related('taxon').only('taxon_id', 'genre', 'espece')
+    if req.method == "POST":
+        form = AddListForm(req.POST, instance = liste)
+        if form.is_valid():
+            print(form.cleaned_data)
+    else:
+        form = AddListForm(instance = liste)

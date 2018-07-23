@@ -31,5 +31,7 @@ urlpatterns = [
     url(r'^themes/$', views.themes, name = 'themes'),
     url(r'^deletetheme/$', views.deleteTheme, name = 'themes_del'),
     url(r'^file/(?P<tax>[0-9]+)/$', views.send_file, name = 'sendfile'),
-    url(r'^liste_add/$', views.addList, name = 'addlist')
+    url(r'^liste_add/$', views.addList, name = 'addList'),
+    url(r'^listes/$', views.showLists, name = 'showLists'),
+    url(r'liste_details/(?P<id_liste>[0-9]+)/$', views.detaisList, name = 'detailsList')
 ]

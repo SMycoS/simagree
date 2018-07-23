@@ -183,7 +183,7 @@ class AddThemeForm(forms.ModelForm):
 
 class AddListForm(forms.ModelForm):
     opts = [('1', 'Opt 1'), ('2', 'Opt 2'), ('3', 'Opt 3')]
-    selectf = forms.MultipleChoiceField(widget=forms.SelectMultiple(attrs={'class' : 'form-control', 'id' : 'dualbox'}), choices = opts)
+    selectf = forms.MultipleChoiceField(label = '', widget=forms.SelectMultiple(attrs={'class' : 'form-control'}), choices = opts)
     class Meta:
         model = ListeRecolte
         fields = '__all__'

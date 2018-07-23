@@ -1,0 +1,17 @@
+{% extends 'partial/base.html' %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">Récoltes du  {{ liste.date }}</h1>
+    <p class="lead">{{ liste.lieu }}</p>
+    <hr class="my-4">
+    <h2>Espèces récoltées</h2>
+    <ul>
+        <li>Foo Bar</li>
+        <li>Bar Foo</li>
+    </ul>
+    <p class="lead">
+      <a class="btn btn-primary btn-lg" href="{% url 'sendfile' tax = shroom.taxon %}" role="button">Générer une fiche</a>
+    </p>
+  </div>
+{% endblock %}

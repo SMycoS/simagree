@@ -51,6 +51,11 @@
                             <a class="nav-link" href="{% url 'themes' %}">Importer / Exporter</a>
                         </li>
                     {% endif %}
+                    {% if request.user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'showLists' %}">Récoltes</a>
+                        </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="#">A propos</a>
                     </li>

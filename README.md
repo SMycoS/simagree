@@ -27,4 +27,5 @@ SIMAGREE utilise plusieurs dépendances externes (en plus de Django) comme des p
 * [Bootstrap 4 (CSS et JS)](https://getbootstrap.com/)
 * [Chosen](https://harvesthq.github.io/chosen/)
 * [bootstrap-duallistbox](https://github.com/istvan-ujjmeszaros/bootstrap-duallistbox)
+* [datepicker](https://github.com/fengyuanchen/datepicker)
 

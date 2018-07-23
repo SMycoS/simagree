@@ -1,16 +1,32 @@
 {% extends 'partial/base.html' %}
 
+{% block custom_style %}
+<style>
+    select {
+        width: 100%;
+    } 
+    .box1, .box2 {
+        margin-top : 30px;
+        margin-bottom: 30px;
+    }
+    .listForm {
+        margin-top: 30px;
+    }
+</style>
+{% endblock %}
 {% block content %}
-<div class="container">
+<div class="container listForm">
     <form action="" method="post">
         {% csrf_token %}
         {{ form }}
-        <button type="submit">GO</button>
+        <button type="submit" class = "btn btn-primary">GO</button>
     </form>
     <script>
         $(document).ready(() => {
-            $('#dualbox').bootstrapDualListbox();
-            $('#datepicker').datepicker();
+            $('select[name="selectf"]').bootstrapDualListbox();
+            $('#datepicker').datepicker({
+                'format' : 'dd/mm/yyyy'
+            });
         })
     </script>
 </div>
