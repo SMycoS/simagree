@@ -66,7 +66,7 @@
                 <tbody>
                     {% for obj in shrooms %}
                     <tr>
-                    <td><a href="{% url 'details' id = obj.id %}">{{ obj.taxon_id }}</a></td>
+                    <td><a href="{% url 'details' id=obj.id %}">{{ obj.taxon_id }}</a></td>
                     <td>{{ obj.genre }}</td>
                     <td>{{ obj.espece }}</td>
                     <td>{{ obj.variete }}</td>
@@ -81,12 +81,29 @@
                         {% endif %}
                     </td>
                     <td><a href="{% url 'modify' id=obj.id %}">Modifier</a>
-                    <form action="/delete/" method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                        <input type="hidden" name="ident" value="{{ obj.id }}">
-                        <button type="submit">Supprimer</button>
-                    </form></td>
+                    <div class="btn-group">
+                            <button class="btn btn-info">Action</button>
+                            <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="sr-only">Toggle Dropdown</span>
+                            </button>
+                            <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">Modifier le taxon</a>
+                            <a class="dropdown-item" href="#">Modifier l'espèce</a>
+                            <div class="dropdown-divider"></div>
+                            <form action="/delete/" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <input type="hidden" name="ident" value="{{ obj.id }}">
+                                <button type="submit" class="dropdown-item">Supprimer l'espèce</button>
+                            </form>
+                            <form action="/deleteTaxon/" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <input type="hidden" name="taxon" value="{{ obj.taxon_id }}">
+                                <button type="submit" class="dropdown-item">Supprimer le taxon</button>
+                            </form>
+                        </div>
+                    </td>
                     {% endfor %}
                     </tr>
                 </tbody>

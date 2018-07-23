@@ -59,3 +59,12 @@ class Nomenclature(models.Model):
         managed = True
         db_table = 'nomenclature'
 
+class ListeRecolte(models.Model):
+    date = models.DateField()
+    lieu = models.TextField()
+    taxons = models.ManyToManyField(Identifiants)
+
+    class Meta:
+        managed = True
+        db_table = 'listrec'
+

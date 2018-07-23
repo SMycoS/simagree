@@ -15,6 +15,10 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" type="test/css" href="{% static 'js/chosen_v1/chosen.min.css' %}">
     <script src="{% static 'js/chosen_v1/chosen.jquery.min.js' %}"></script>
+    <link rel="stylesheet" type="test/css" href="{% static 'js/dual_select_boxes/bootstrap-duallistbox.css' %}">
+    <script src="{% static 'js/dual_select_boxes/src/jquery.bootstrap-duallistbox.js' %}"></script>
+    <link rel="stylesheet" type="test/css" href="{% static 'js/datepicker-master/dist/datepicker.min.css' %}">
+    <script src="{% static 'js/datepicker-master/dist/datepicker.min.js' %}"></script>
 </head>
 <body>
     <header>
@@ -39,9 +43,12 @@
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                           <a class="dropdown-item" href="{% url 'add' %}">Ajout complet</a>
                           <a class="dropdown-item" href="{% url 'addPart' %}">Ajout nomenclature</a>
-                      </li>
-                      <li class="nav-item {% if request.resolver_match.url_name == 'themes' %}active{% endif %}">
+                        </li>
+                        <li class="nav-item {% if request.resolver_match.url_name == 'themes' %}active{% endif %}">
                             <a class="nav-link" href="{% url 'themes' %}">Thèmes</a>
+                        </li>
+                        <li class="nav-item {% if request.resolver_match.url_name == 'themes' %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'themes' %}">Importer / Exporter</a>
                         </li>
                     {% endif %}
                     <li class="nav-item">

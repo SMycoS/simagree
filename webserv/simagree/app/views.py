@@ -13,7 +13,7 @@ import os
 # Create your views here.
 
 from .models import Identifiants, Themes, Nomenclature
-from .forms import SearchForm, AddFormNom, AddFormId, AddFormPartial, ConnexionForm, AddThemeForm, ModForm
+from .forms import *
 from .searchparser import dbRequest
 from .pdfgen import generateFiche
 
@@ -110,6 +110,12 @@ def deleteConfirm(req):
         item.delete()
         return HttpResponseRedirect(req.POST.get('next'))
 
+def deleteTaxon(req):
+    if req.method == 'POST':
+        item = Identifiants.objects.using('simagree').get(taxon = req.POST.get('taxon'))
+        item.delete()
+        return HttpResponseRedirect(req.POST.get('next'))
+
 def modify(req, id):
     if req.user.is_authenticated:
         inst_nom = Nomenclature.objects.using('simagree').get(id = id)
@@ -129,6 +135,18 @@ def modify(req, id):
         return render(req, 'modify.html', {'form' : id_form})
     else:
         return redirect(reverse(connexion))
+
+def modifyTaxon(req, tax):
+    if not req.user.is_authenticated:
+        return redirect(reverse(connexion))
+    inst = Identifiants.objects.using('simagree').get(taxon = tax)
+    if req.method == 'GET':
+        form = ModFormTax(req.GET or None, instance = inst)
+    elif req.method == 'POST':
+        if form.is_valid():
+            values = form.save(commit = False)
+            values.save
+    return render(req, 'modify_tax.html', {'form' : form})
 
 ########## Vues pour la connexion ##########
 
@@ -180,11 +198,11 @@ def deleteTheme(req):
 ########## Vues pour la gestion des pdf ##########
 
 def send_file(request, id_item):
-    """
+    
     # Generation du pdf
     item = Nomenclature.object.using('simagree').select_related('taxon').filter(id = id_item).values(
         'theme',
-        'fiche',
+        'taxon__fiche',
         'genre',
         'espece',
         'variete',
@@ -193,19 +211,19 @@ def send_file(request, id_item):
         'taxon__comestible',
     )
     vars = {
-        'theme' : ,
-        'fiche' : '1125',
-        'genre' : 'Fooescens',
-        'espece' : 'Barescentia',
-        'variete' : 'variata',
-        'noms' : 'Foobarista',
-        'forme' : 'formosa',
-        'comestibilite' : 'M',
+        'theme' : item['theme'],
+        'fiche' : item['taxon__fiche'],
+        'genre' : item['genre'],
+        'espece' : item['espece'],
+        'variete' : item['variete'],
+        'noms' : item['taxon__noms'],
+        'forme' : item['forme'],
+        'comestibilite' : item['taxon__comestible'],
         'obs' : "C'est joli",
         }
-    save_name = '/static/fiches/' + id_item + '.pdf'
-    generateFiche(save_name, )
-    """
+    # save_name = '/static/fiches/' + id_item + '.pdf'
+    generateFiche(item['taxon_fiche'] + '.pdf', vars)
+
     # Envoi de fichier
 
     """                                                                         
@@ -213,8 +231,23 @@ def send_file(request, id_item):
     memory at once. The FileWrapper will turn the file object into an           
     iterator for chunks of 8KB.                                                 
     """
-    filename = id + '.pdf'                               
+    filename = item['taxon__fiche'] + '.pdf'                               
     wrapper = FileWrapper(file(filename))
     response = HttpResponse(wrapper, content_type='text/plain')
     response['Content-Length'] = os.path.getsize(filename)
     return response
+
+########## Vues pour la gestion des fiches récolte ##########
+
+def addList(req):
+    if not req.user.is_authenticated:
+        return redirect(reverse(connexion))
+    all_taxons = Nomenclature.objects.using('simagree').select_related('taxon').only('taxon_id', 'genre', 'espece')
+    if req.method == "POST":
+        form = AddListForm(req.POST)
+        if form.is_valid():
+            print(form.cleaned_data)
+    else:
+        form = AddListForm()
+
+    return render(req, 'listes_create.html', {'form' : form, 'all_tax' : all_taxons})

@@ -56,7 +56,7 @@ class AddFormId(forms.ModelForm):
             'fiche' :forms.NumberInput(attrs={'class' : 'form-control'}),
             'comestible' : forms.TextInput(attrs={'class' : 'form-control'}),
             'sms' : forms.NullBooleanSelect(attrs={'class' : 'form-control'}),
-            'a_imprimer' : forms.NullBooleanSelect(attrs={'class' : 'form-control'}),
+            'a_imprimer' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
             'lieu' : forms.TextInput(attrs={'class' : 'form-control'}),
             'apparition' : forms.TextInput(attrs={'class' : 'form-control'}),
             'notes' : forms.Textarea(attrs={'class' : 'form-control'}),
@@ -114,6 +114,40 @@ class ModForm(forms.ModelForm):
             'codesyno' : forms.TextInput(attrs={'class' : 'form-control'}),
         }
 
+class ModFormTax(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(AddFormId, self).__init__(*args, **kwargs)
+        self.fields['taxon'].disabled = True
+        self.fields['fiche'].disabled = True
+        self.list = Themes.objects.using('simagree').all()
+        self.fields['theme1'].queryset = self.list
+        self.fields['theme1'].required = False
+        self.fields['theme2'].queryset = self.list
+        self.fields['theme2'].required = False
+        self.fields['theme3'].queryset = self.list
+        self.fields['theme3'].required = False
+        self.fields['theme4'].queryset = self.list
+        self.fields['theme4'].required = False
+
+    class Meta:
+        model = Identifiants
+        fields = '__all__'
+        widgets = {
+            'taxon' : forms.NumberInput(attrs={'class' : 'form-control'}),
+            'noms' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'fiche' :forms.NumberInput(attrs={'class' : 'form-control'}),
+            'comestible' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'sms' : forms.NullBooleanSelect(attrs={'class' : 'form-control'}),
+            'a_imprimer' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
+            'lieu' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'apparition' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'notes' : forms.Textarea(attrs={'class' : 'form-control'}),
+            'ecologie' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'icono1' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'icono2' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'icono3' : forms.TextInput(attrs={'class' : 'form-control'}),
+        }
 
 ########## CONNEXION ##########
 
@@ -143,3 +177,18 @@ class AddThemeForm(forms.ModelForm):
         model = Themes
         fields = '__all__'
         widgets = {'theme' : forms.TextInput(attrs={'class' : 'form-control'})}
+
+
+########## LISTES ##########
+
+class AddListForm(forms.ModelForm):
+    opts = [('1', 'Opt 1'), ('2', 'Opt 2'), ('3', 'Opt 3')]
+    selectf = forms.MultipleChoiceField(widget=forms.SelectMultiple(attrs={'class' : 'form-control', 'id' : 'dualbox'}), choices = opts)
+    class Meta:
+        model = ListeRecolte
+        fields = '__all__'
+        exclude = ('taxons'),
+        widgets = {
+            'date' : forms.DateInput(attrs={'class' : 'form-control', 'id' : 'datepicker'}),
+            'lieu' : forms.TextInput(attrs={'class' : 'form-control'})
+        }

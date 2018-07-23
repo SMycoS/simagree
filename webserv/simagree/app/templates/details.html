@@ -32,7 +32,7 @@
             {% endfor %}
         </ul>
         <p class="lead">
-          <a class="btn btn-primary btn-lg" href="#" role="button">Générer une fiche</a>
+          <a class="btn btn-primary btn-lg" href="{% url 'sendfile' tax = shroom.taxon %}" role="button">Générer une fiche</a>
         </p>
       </div>
 {% endblock %}
