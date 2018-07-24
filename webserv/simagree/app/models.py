@@ -59,6 +59,15 @@ class Nomenclature(models.Model):
         managed = True
         db_table = 'nomenclature'
 
+class LieuRecolte:
+    libelle = models.TextField(unique = True)
+    commune = models.TextField()
+    lieu_dit = models.TextField()
+
+    class Meta:
+        managed = True
+        db_table = 'lieurec'
+
 class ListeRecolte(models.Model):
     date = models.DateField()
     lieu = models.TextField()

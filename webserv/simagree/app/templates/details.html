@@ -1,38 +1,62 @@
 {% extends 'partial/base.html' %}
 
+{% block custom_style %}
+<style>
+    #nomValide {
+        font-weight: bolder;
+        font-size: 1.5em;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="jumbotron">
-        <h1 class="display-4">Taxon {{ shroom.taxon }}</h1>
-        <p class="lead">{{ shroom.noms }}</p>
-        <ul>
-            <li>
-                {% if shroom.sms %}
-                    Ce champignon est présent à la SMS
+        <h1 class="display-4">{{ shroom.taxon_id }} - {{ shroom.genre }} {{ shroom.espece }}</h1>
+        <p class="lead">{{ shroom.taxon__noms }}</p>
+        {% if codesyno != 0 %}
+            {% for item in others %}
+                {% if item.codesyno == 0 %}
+                    <p class="lead">Aussi connu sous le nom de <a href="{% url 'details' id_item=item.id%}" id="nomValide">{{ item.genre }} {{ item.espece }}</a></p>
                 {% endif %}
-            </li>
+            {% endfor %}
+        {% endif %}
+        <ul>
+            {% if shroom.taxon__sms %}
+                <li>
+                    Ce champignon est présent à la SMS
+                </li>
+            {% endif %}
             <li>
-                {% if shroom.comestible == 'C' %}
+                {% if shroom.taxon__comestible == 'C' %}
                     Ce champignon est <b>comestible</b>
-                {% elif shroom.comestible == 'NC' %}
+                {% elif shroom.taxon__comestible == 'NC' %}
                     Ce champignon est <b>non comestible</b>
-                {% elif shroom.comestible == 'T' %}
+                {% elif shroom.taxon__comestible == 'T' %}
                     Ce champignon est <b>toxique</b>
-                {% elif shroom.comestible == 'M'}
+                {% elif shroom.taxon__comestible == 'M' %}
                     Ce champignon est <b>mortel</b>
                 {% else %}
                     Aucune information concernant sa comestibilité
                 {% endif %}
             </li>
         </ul>
+        {% if shroom.variete %} 
+            <p class="lead">{{ shroom.variete }}</p>
+        {% endif %}
+        {% if shroom.forme %}
+            <p class="lead">{{ shroom.forme }}</p>
+        {% endif %}
         <hr class="my-4">
         <h2>Synonymes</h2>
         <ul>
             {% for item in others %}
-            <li><a href="{% url 'details' id = item.id %}">{{ item.genre }} {{ item.espece }}</a></li>
+                {% if item.codesyno != 0 %}
+                    <li><a href="{% url 'details' id_item=item.id %}">{{ item.genre }} {{ item.espece }}</a></li>
+                {% endif %}
             {% endfor %}
         </ul>
         <p class="lead">
-          <a class="btn btn-primary btn-lg" href="{% url 'sendfile' tax = shroom.taxon %}" role="button">Générer une fiche</a>
         </p>
       </div>
 {% endblock %}

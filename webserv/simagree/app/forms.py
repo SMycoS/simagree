@@ -115,9 +115,8 @@ class ModForm(forms.ModelForm):
         }
 
 class ModFormTax(forms.ModelForm):
-
     def __init__(self, *args, **kwargs):
-        super(AddFormId, self).__init__(*args, **kwargs)
+        super(ModFormTax, self).__init__(*args, **kwargs)
         self.fields['taxon'].disabled = True
         self.fields['fiche'].disabled = True
         self.list = Themes.objects.using('simagree').all()

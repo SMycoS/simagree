@@ -33,5 +33,5 @@ urlpatterns = [
     url(r'^file/(?P<tax>[0-9]+)/$', views.send_file, name = 'sendfile'),
     url(r'^liste_add/$', views.addList, name = 'addList'),
     url(r'^listes/$', views.showLists, name = 'showLists'),
-    url(r'liste_details/(?P<id_liste>[0-9]+)/$', views.detaisList, name = 'detailsList')
+    url(r'liste_details/(?P<id_liste>[0-9]+)/$', views.detailsList, name = 'detailsList')
 ]

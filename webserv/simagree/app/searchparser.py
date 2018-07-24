@@ -42,6 +42,7 @@ def dbRequest(data):
         'taxon__sms',
         'taxon__comestible',
         'taxon__noms',
-        'id'
+        'id',
+        'codesyno'
         )
 

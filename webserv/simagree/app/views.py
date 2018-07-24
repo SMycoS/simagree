@@ -32,6 +32,7 @@ def search(req):
                 # ...
                 # redirect to a new URL:
                 items = dbRequest(form.cleaned_data)
+                print(items)
                 return render(req, 'search.html', {'form' : form, 'shrooms' : items})
         else:
             form = SearchForm(auto_id=True)
@@ -51,26 +52,25 @@ def add(req):
         # première requête
         if req.method == 'GET':
             id_form = AddFormId(req.GET or None)
-            #nom_form = AddFormNom(req.GET or None)
+            nom_form = AddFormNom(req.GET or None)
         # après envoi du formulaire
         elif req.method == 'POST':
             id_form = AddFormId(req.POST)
-            #nom_form = AddFormNom(req.POST)
-            if id_form.is_valid():
+            nom_form = AddFormNom(req.POST)
+            if id_form.is_valid() and nom_form.is_valid():
                 # sauvegarde dans la table Identifiants
-                print("VALID BOI")
-                ##inst = id_form.save(commit = False)
-                ##inst.save(using='simagree')
+                inst = id_form.save(commit = False)
+                inst.save(using='simagree')
 
                 # sauvegarde dans la table Nomenclature
-                #values = nom_form.save(commit = False)
-                #values.taxon = inst
+                values = nom_form.save(commit = False)
+                values.taxon = inst
                 # vérification du code synonyme
-                #if values.codesyno == 0:
-                 #   Nomenclature.objects.using('simagree').filter(Q(taxon=new_inst.taxon) & Q(codesyno=0)).update(codesyno=1)
-                #values.save(using='simagree')
+                if values.codesyno == 0:
+                    Nomenclature.objects.using('simagree').filter(Q(taxon=new_inst.taxon) & Q(codesyno=0)).update(codesyno=1)
+                values.save(using='simagree')
 
-        return render(req, 'add.html', {'form' : id_form, 'all_tax' : data})
+        return render(req, 'add.html', {'form' : id_form, 'form2' : nom_form,'all_tax' : data})
     else:
         return redirect(reverse(connexion))
 
@@ -98,9 +98,12 @@ def addPartial(req):
 
 def details(req, id_item):
     if req.user.is_authenticated:
-        item = Nomenclature.objects.using('simagree').get(id = id_item)
-        others = Nomenclature.objects.using('simagree').filter(Q(taxon = item.taxon) & Q(id != id_item)).values('genre', 'espece', 'id')
-        return render(req, 'details.html', {'shroom' : item, 'others' : others})
+        item = Nomenclature.objects.using('simagree').select_related('taxon').filter(id = id_item).values('taxon_id', 'taxon__noms', 'taxon__comestible', 'taxon__sms', 'codesyno', 'genre', 'espece', 'variete', 'forme')
+        try:
+            others = Nomenclature.objects.using('simagree').filter(Q(taxon = item[0]['taxon_id']) & ~Q(id = id_item)).values('genre', 'espece', 'id', 'codesyno')
+            return render(req, 'details.html', {'shroom' : item[0], 'others' : others})
+        except:
+            return render(req, 'details.html', {'shroom' : item[0]})
     else:
         return redirect(reverse(connexion))
 
@@ -124,15 +127,16 @@ def modify(req, id):
             nom_form = ModForm(req.GET or None, instance=inst_nom)
         # après envoi du formulaire
         elif req.method == 'POST':
+            nom_form = ModForm(req.POST, instance = inst_nom)
             if nom_form.is_valid():
                 # sauvegarde dans la table Nomenclature
                 values = nom_form.save(commit = False)
                 # vérification du code synonyme
                 if values.codesyno == 0:
-                    Nomenclature.objects.using('simagree').filter(Q(taxon=inst_id.taxon) & Q(codesyno=0)).update(codesyno=1)
+                    Nomenclature.objects.using('simagree').filter(Q(taxon=values.taxon) & Q(codesyno=0)).update(codesyno=1)
                 values.save(using='simagree')
 
-        return render(req, 'modify.html', {'form' : id_form})
+        return render(req, 'modify.html', {'form' : nom_form})
     else:
         return redirect(reverse(connexion))
 
@@ -143,9 +147,10 @@ def modifyTaxon(req, tax):
     if req.method == 'GET':
         form = ModFormTax(req.GET or None, instance = inst)
     elif req.method == 'POST':
+        form = ModFormTax(req.POST, instance = inst)
         if form.is_valid():
             values = form.save(commit = False)
-            values.save
+            values.save()
     return render(req, 'modify_tax.html', {'form' : form})
 
 ########## Vues pour la connexion ##########
@@ -197,10 +202,10 @@ def deleteTheme(req):
 
 ########## Vues pour la gestion des pdf ##########
 
-def send_file(request, id_item):
+def send_file(request, tax):
     
     # Generation du pdf
-    item = Nomenclature.object.using('simagree').select_related('taxon').filter(id = id_item).values(
+    item = Nomenclature.object.using('simagree').select_related('taxon').filter(id = rax).values(
         'theme',
         'taxon__fiche',
         'genre',
@@ -259,7 +264,7 @@ def showLists(req):
     listes = []
     return render(req, 'listes.html', {'listes' : listes})
 
-def detaisList(req, id_liste):
+def detailsList(req, id_liste):
     if not req.user.is_authenticated:
         return redirect(reverse(connexion))
     liste = ListeRecolte.objects.using('simagree').get(id = id_liste)

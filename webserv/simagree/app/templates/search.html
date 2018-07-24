@@ -66,7 +66,7 @@
                 <tbody>
                     {% for obj in shrooms %}
                     <tr>
-                    <td><a href="{% url 'details' id=obj.id %}">{{ obj.taxon_id }}</a></td>
+                    <td><a href="{% url 'details' id_item=obj.id %}">{{ obj.taxon_id }}</a></td>
                     <td>{{ obj.genre }}</td>
                     <td>{{ obj.espece }}</td>
                     <td>{{ obj.variete }}</td>
@@ -80,35 +80,52 @@
                         Non
                         {% endif %}
                     </td>
-                    <td><a href="{% url 'modify' id=obj.id %}">Modifier</a>
+                    <td>
                     <div class="btn-group">
                             <button class="btn btn-info">Action</button>
                             <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only">Toggle Dropdown</span>
                             </button>
                             <div class="dropdown-menu">
-                            <a class="dropdown-item" href="#">Modifier le taxon</a>
-                            <a class="dropdown-item" href="#">Modifier l'espèce</a>
+                            <a class="dropdown-item" href="{% url 'modify-tax' tax=obj.taxon_id %}">Modifier le taxon</a>
+                            <a class="dropdown-item" href="{% url 'modify' id=obj.id %}">Modifier l'espèce</a>
                             <div class="dropdown-divider"></div>
-                            <form action="/delete/" method="post">
+                            <form action="/delete/" method="post" id="delEspForm{{obj.id}}">
                                 {% csrf_token %}
                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
                                 <input type="hidden" name="ident" value="{{ obj.id }}">
-                                <button type="submit" class="dropdown-item">Supprimer l'espèce</button>
+                                <button type="submit" class="dropdown-item" id="delEspBtn{{ obj.id }}">Supprimer l'espèce</button>
                             </form>
-                            <form action="/deleteTaxon/" method="post">
+                            <form action="/deleteTaxon/" method="post" id="delTaxForm{{obj.id}}">
                                 {% csrf_token %}
                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
                                 <input type="hidden" name="taxon" value="{{ obj.taxon_id }}">
-                                <button type="submit" class="dropdown-item">Supprimer le taxon</button>
+                                <button type="submit" class="dropdown-item" id="delTaxBtn{{ obj.id }}">Supprimer le taxon</button>
                             </form>
                         </div>
                     </td>
+                    <script>
+                            $(document).ready(() => {
+                                $('#delEspForm{{obj.id}}').on('submit', (e) => {
+                                    {% if obj.codesyno == 0 %}
+                                        e.preventDefault();
+                                        alert("Impossible de supprimer {{ obj.genre }} {{ obj.espece }} car il s'agit du nom valide");
+                                    {% else %}
+                                    return confirm("Voulez-vous vraiment supprimer {{ obj.genre }} {{ obj.espece }} ?");
+                                    {% endif %}
+                                });
+                                $('#delTaxForm{{obj.id}}').on('submit', (e) => {
+                                    return confirm("Voulez-vous vraiment supprimer {{ obj.genre }} {{ obj.espece }} ainsi que tous les synonymes correspondants ??");
+                                });
+                            });
+                        </script>
                     {% endfor %}
                     </tr>
                 </tbody>
             </table>
         </div>
     </section>
+{% endblock %}
 
+{% block extra %}
 {% endblock %}
