@@ -17,10 +17,11 @@ class SearchForm(forms.Form):
 ########## AJOUT ##########
 
 class AddFormNom(forms.ModelForm):
+
     class Meta:
         model = Nomenclature
         fields = '__all__'
-        exclude = ('taxon', 'codesyno'),
+        exclude = ['taxon','codesyno']
         widgets = {
             'genre' : forms.TextInput(attrs={'class' : 'form-control'}),
             'espece' : forms.TextInput(attrs={'class' : 'form-control'}),

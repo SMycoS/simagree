@@ -1,13 +1,14 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse
 from django.db.models import Q
 from django.core import serializers
 from wsgiref.util import FileWrapper
+from django.template import Context, loader
+
 import os
-
-
+import datetime
 
 
 # Create your views here.
@@ -17,29 +18,55 @@ from .forms import *
 from .searchparser import dbRequest
 from .pdfgen import generateFiche
 
+########## Vues pour la connexion ##########
+
+def connexion(request):
+    error = False
+    if request.method == "POST":
+        form = ConnexionForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+            user = authenticate(username=username, password=password)  # Nous vérifions si les données sont correctes
+            if user:  # Si l'objet renvoyé n'est pas None
+                login(request, user)  # nous connectons l'utilisateur
+            else: # sinon une erreur sera affichée
+                error = True
+    else:
+        form = ConnexionForm()
+
+    return render(request, 'login.html', locals())
+
+def deconnexion(request):
+    logout(request)
+    return redirect(reverse(connexion))
+
+# Redirection pour les utilisateurs non authentifiés
+
+########## Vues générales ##########
+
 def accueil(req):
     return render(req, 'home.html')
 
 def search(req):
-    if req.user.is_authenticated:
-        # if this is a POST request we need to process the form data
-        if req.method == 'GET':
-            # create a form instance and populate it with data from the request:
-            form = SearchForm(req.GET or None, auto_id=True)
-            # check whether it's valid:
-            if form.is_valid():
-                # process the data in form.cleaned_data as required
-                # ...
-                # redirect to a new URL:
-                items = dbRequest(form.cleaned_data)
-                print(items)
-                return render(req, 'search.html', {'form' : form, 'shrooms' : items})
-        else:
-            form = SearchForm(auto_id=True)
-
-        return render(req, 'search.html',{'form' : form} )
-    else:
+    if not req.user.is_authenticated:
         return redirect(reverse(connexion))
+    # if this is a POST request we need to process the form data
+    if req.method == 'GET':
+        # create a form instance and populate it with data from the request:
+        form = SearchForm(req.GET or None, auto_id=True)
+        # check whether it's valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # ...
+            # redirect to a new URL:
+            items = dbRequest(form.cleaned_data)
+            print(items)
+            return render(req, 'search.html', {'form' : form, 'shrooms' : items})
+    else:
+        form = SearchForm(auto_id=True)
+
+    return render(req, 'search.html',{'form' : form} )
 
 
 ########## Vues pour la gestion des champignons ##########
@@ -57,18 +84,25 @@ def add(req):
         elif req.method == 'POST':
             id_form = AddFormId(req.POST)
             nom_form = AddFormNom(req.POST)
+            if id_form.is_valid():
+                print('id ok')
+            if nom_form.is_valid():
+                print('nom ok')
+            else:
+                print(nom_form.errors)
+                print(nom_form)
             if id_form.is_valid() and nom_form.is_valid():
+                print('valid')
                 # sauvegarde dans la table Identifiants
                 inst = id_form.save(commit = False)
                 inst.save(using='simagree')
-
                 # sauvegarde dans la table Nomenclature
                 values = nom_form.save(commit = False)
                 values.taxon = inst
-                # vérification du code synonyme
-                if values.codesyno == 0:
-                    Nomenclature.objects.using('simagree').filter(Q(taxon=new_inst.taxon) & Q(codesyno=0)).update(codesyno=1)
+                values.codesyno = 0
                 values.save(using='simagree')
+            
+            
 
         return render(req, 'add.html', {'form' : id_form, 'form2' : nom_form,'all_tax' : data})
     else:
@@ -153,28 +187,6 @@ def modifyTaxon(req, tax):
             values.save()
     return render(req, 'modify_tax.html', {'form' : form})
 
-########## Vues pour la connexion ##########
-
-def connexion(request):
-    error = False
-    if request.method == "POST":
-        form = ConnexionForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data["username"]
-            password = form.cleaned_data["password"]
-            user = authenticate(username=username, password=password)  # Nous vérifions si les données sont correctes
-            if user:  # Si l'objet renvoyé n'est pas None
-                login(request, user)  # nous connectons l'utilisateur
-            else: # sinon une erreur sera affichée
-                error = True
-    else:
-        form = ConnexionForm()
-
-    return render(request, 'login.html', locals())
-
-def deconnexion(request):
-    logout(request)
-    return redirect(reverse(connexion))
 
 
 
@@ -286,3 +298,92 @@ def modList(req, id_liste):
             print(form.cleaned_data)
     else:
         form = AddListForm(instance = liste)
+
+def testCsv(request):
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+
+    # The data is hard-coded here, but you could load it from a database or
+    # some other source.
+    csv_data = (
+        ('First row', 'Foo', 'Bar', 'Baz'),
+        ('Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"),
+    )
+    csv_header = ('A', 'B', 'C', 'D')
+
+    t = loader.get_template('csv_template.txt')
+    c = {
+        'header' : csv_header,
+        'data': csv_data }
+    response.write(t.render(c))
+    return response
+
+
+def csvIdent(req):
+    # Création d'une reponse au format csv
+    response = HttpResponse(content_type='text/csv')
+    filename = datetime.datetime.now().strftime('"SMS_Identifiants_%d-%m-%Y.csv"')
+    response['Content-Disposition'] = 'attachment; filename=' + filename
+    # Création du header
+    csv_header = (
+        'Taxon',
+        'Noms usuels',
+        'Fiche',
+        'Comestibilité',
+        'SMS',
+        'A imprimer',
+        'Lieu',
+        'Apparition',
+        'Notes',
+        'Ecologie',
+        'Thème 1',
+        'Thème 2',
+        'Thème 3',
+        'Thème 4',
+        'Iconographie 1',
+        'Iconographie 2',
+        'Iconographie 3',
+        'Numéro herbier'
+    )
+    # Chargement du fichier templace
+    template = loader.get_template('csv_identifiants_template.txt')
+
+    # Objet
+    c = {
+        'header' : csv_header,
+        'data' : Identifiants.objects.using('simagree').all()
+    }
+    response.write(template.render(c))
+    return response
+
+def csvNomenc(req):
+    # Création d'une reponse au format csv
+    response = HttpResponse(content_type='text/csv')    
+    filename = datetime.datetime.now().strftime('"SMS_Nomenclature_%d-%m-%Y.csv"')
+    response['Content-Disposition'] = 'attachment; filename=' + filename
+    # Création du header
+    csv_header = (
+        'Taxon',
+        'Code Synonyme',
+        'Genre',
+        'Espèce',
+        'Variété',
+        'Forme',
+        'Autorité',
+        'Biliographie 1',
+        'Bibliographie 2',
+        'Bibliographie 3',
+        'Tri MOSER',
+        'Date'
+    )
+    # Chargement du fichier templace
+    template = loader.get_template('csv_nomenclature_template.txt')
+
+    # Objet
+    c = {
+        'header' : csv_header,
+        'data' : Nomenclature.objects.using('simagree').all().order_by('taxon_id', 'codesyno')
+    }
+    response.write(template.render(c))
+    return response

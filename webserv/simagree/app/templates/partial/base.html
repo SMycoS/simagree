@@ -47,12 +47,12 @@
                         <li class="nav-item {% if request.resolver_match.url_name == 'themes' %}active{% endif %}">
                             <a class="nav-link" href="{% url 'themes' %}">Thèmes</a>
                         </li>
-                        <li class="nav-item {% if request.resolver_match.url_name == 'themes' %}active{% endif %}">
+                        <li class="nav-item {% if request.resolver_match.url_name == 'imp-exp' %}active{% endif %}">
                             <a class="nav-link" href="{% url 'themes' %}">Importer / Exporter</a>
                         </li>
                     {% endif %}
                     {% if request.user.is_authenticated %}
-                        <li class="nav-item">
+                        <li class="nav-item {% if request.resolver_match.url_name == 'showLists' %}active{% endif %}">
                             <a class="nav-link" href="{% url 'showLists' %}">Récoltes</a>
                         </li>
                     {% endif %}

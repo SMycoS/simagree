@@ -22,7 +22,7 @@ class Identifiants(models.Model):
     sms = models.NullBooleanField()
     a_imprimer = models.NullBooleanField()
     lieu = models.TextField(blank=True, null=True)
-    apparition = models.TextField()
+    apparition = models.TextField(blank=True, null=True)
     notes = models.TextField(blank = True, null = True)
     ecologie = models.TextField(blank = True, null = True)
     theme1 = models.ForeignKey(Themes, on_delete = models.SET_NULL, null = True, to_field='theme', related_name='Theme1')
@@ -33,8 +33,6 @@ class Identifiants(models.Model):
     icono2 = models.TextField(blank = True, null = True)
     icono3 = models.TextField(blank = True, null = True)
     num_herbier = models.IntegerField(blank = True, null = True)
-    
-
 
     class Meta:
         managed = True
@@ -48,18 +46,18 @@ class Nomenclature(models.Model):
     espece = models.TextField()
     variete = models.TextField(blank=True, null=True)
     forme = models.TextField(blank=True, null=True)
-    autorite = models.TextField()
-    moser = models.TextField()
+    autorite = models.TextField(blank=True, null=True)
     biblio1 = models.TextField(blank=True, null=True)
     biblio2 = models.TextField(blank=True, null=True)
     biblio3 = models.TextField(blank=True, null=True)
+    moser = models.TextField(blank=True, null=True)
     date = models.DateField(auto_now = True)
 
     class Meta:
         managed = True
         db_table = 'nomenclature'
 
-class LieuRecolte:
+class LieuRecolte(models.Model):
     libelle = models.TextField(unique = True)
     commune = models.TextField()
     lieu_dit = models.TextField()
@@ -70,7 +68,7 @@ class LieuRecolte:
 
 class ListeRecolte(models.Model):
     date = models.DateField()
-    lieu = models.TextField()
+    lieu = models.ForeignKey(LieuRecolte, on_delete=models.SET_NULL, null=True, blank=True)
     taxons = models.ManyToManyField(Identifiants)
 
     class Meta:

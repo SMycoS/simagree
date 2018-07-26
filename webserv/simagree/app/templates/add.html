@@ -1,6 +1,7 @@
 {% extends 'partial/base.html' %}
 
 {% block content %}
+{{ form2 }}
 <div class="container formDiv">
   <!-- Button trigger modal -->
 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#taxonModal">
@@ -87,9 +88,13 @@
           </div>
         </div>
         {{form.theme1}}
+        {{form.theme1.errors}}
         {{form.theme2}}
+        {{form.theme2.errors}}
         {{form.theme3}}
+        {{form.theme3.errors}}
         {{form.theme4}}
+        {{form.theme4.errors}}
 
         <hr>
 

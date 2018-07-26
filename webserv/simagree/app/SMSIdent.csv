@@ -1,0 +1,27 @@
+NC;Sms;Comestibilit�;Fiche;Liste;Apparition;Noms usuels;Notes;Ecologie;Th�me1;Th�me2;Th�me3;Th�me4;Icono1;Icono2;Icono3;Num herbier;
+100;true;NC;1;true;J2017;Amanite des aulnes;;Sous aulnes, zones humides;;;;;;;;;
+200;true;C;2;;1995,1998;"Amanite ceintur�e
+
+Riesenstreifling";;Dans les for�ts de feuillus et de conif�res sur tout sol.;;;;;;;;;
+300;;;3;;;;;;;;;;;;;;
+350;;NC;4296;;;;;Sous Pinus pinea;;;;;;;;;
+400;true;NC;4;;1998;;;;;;;;;;;;
+410;;NC;4804;;;;;;;;;;;;;;
+500;;;5;;;;;;;;;;;;;;
+600;true;NC;6;;1995,1998;;;;;;;;;;;;
+700;;;7;;;;;;;;;;;;;;
+800;;;8;;;;;;;;;;;;;;
+810;true;NC;4336;;2014;;;Sous Populus sp., �ventuellement sous Salix sp.;;;;;;;;;
+811;;NC;4356;;;;;;;;;;;;;;
+820;;NC;4377;;;;;Sous Quercus sp.;;;;;;;;;
+830;;NC;4432;;;;;Sous Quercus sp.;;;;;;;;;
+831;;NC;5279;;;;;;;;;;;;;;
+900;;;9;;;;;;;;;;;;;;
+1000;;;10;;;;;;;;;;;;;;
+1050;;NC;4895;;;;;;;;;;;;;;
+1100;;;11;;;;;Sous saules nains;;;;;;;;;
+1150;;NC;5119;;;;;Sous Betula sp. et saules nains;;;;;;;;;
+1200;true;C;12;;1995,1998,2000;"Amanite vagin�e, grisette
+
+Grauer Streifling";;Sous feuillus , conif�res et dans les prairies.;;;;;;;;;
+1300;true;C;13;;;;;;;;;;;;;;

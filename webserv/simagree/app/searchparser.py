@@ -33,7 +33,7 @@ def dbRequest(data):
 
     
     # la requête n'est effectuée qu'une seule fois, ci-dessous
-    return query.order_by('taxon').values(
+    return query.order_by('taxon_id', 'codesyno').values(
         'taxon_id',
         'genre',
         'espece',
@@ -43,6 +43,8 @@ def dbRequest(data):
         'taxon__comestible',
         'taxon__noms',
         'id',
-        'codesyno'
+        'codesyno',
+        'date',
+        'taxon__apparition'
         )
 
