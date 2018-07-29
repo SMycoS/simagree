@@ -35,5 +35,6 @@ urlpatterns = [
     url(r'^listes/$', views.showLists, name = 'showLists'),
     url(r'liste_details/(?P<id_liste>[0-9]+)/$', views.detailsList, name = 'detailsList'),
     url(r'^export/identifiants/$', views.csvIdent, name = 'export-ident'),
-    url(r'^export/nomenclature/$', views.csvNomenc, name = 'export-nomenc')
+    url(r'^export/nomenclature/$', views.csvNomenc, name = 'export-nomenc'),
+    url(r'^import_export/$', views.upload_csv, name = 'imp-exp')
 ]

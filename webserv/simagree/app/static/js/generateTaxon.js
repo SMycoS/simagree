@@ -1,24 +1,21 @@
 $(document).ready(() => {
-    function loadAllTaxons(data) {
-        for (let i = 0; i < data.length; i++) {
-            $('#prevTaxSelect').append(`<option value="${i}">${data[i].fields.taxon} - ${data[i].fields.genre} ${data[i].fields.espece}</option>`);
-        }
-        console.log('done');
-    }
-    loadAllTaxons(tax);
+    data = $('#prevTaxSelect option');
     $('.chosen-select').chosen({
         width: '50%'
     });
 
-    function getNextTaxon(tax_ind, data) {
+    // renvoie l'indice du taxon suivant (prend l'indice du taxon en paramètre)
+    function getNextTaxon(tax_ind) {
         for (let i = tax_ind; i < data.length - 1; i++) {
-            if (data[i].fields.taxon < data[i+1].fields.taxon) {
+            if (parseInt(data[i].value, 10) < parseInt(data[i+1].value, 10)) {
                 return i+1;
             }
         }
-
         return tax_ind;
     }
+
+    // renvoie le nouveau taxon
+    // prend en paramètres la valeur du taxon sélectionné et l'indice du taxon suivant
     function getNewTaxon(current, next) {
         if (current == next) {
             return current + 100;
@@ -34,17 +31,18 @@ $(document).ready(() => {
 
     $('#taxBtn').on('click', (e) => {
         e.preventDefault();
-        let choice = parseInt($('#prevTaxSelect').val(),10);
-        let next = getNextTaxon(choice, tax);
-        let suiv = getNewTaxon(tax[choice].fields.taxon, tax[next].fields.taxon);
+        let choice = $('#prevTaxSelect').prop('selectedIndex');
+        let next = getNextTaxon(choice);
+        console.log(choice);
+        let suiv = getNewTaxon(parseInt(data[choice].value, 10), parseInt(data[next].value, 10));
+        console.log(suiv);
         $("#id_taxon").val(suiv);
         $('#taxonModal').modal('hide');
     });
-
+    
     $('#taxLinkBtn').on('click', (e) => {
         e.preventDefault();
-        let choice = parseInt($('#prevTaxSelect').val(),10);
-        $('#id_tax').val(tax[choice].fields.taxon);
+        $('#id_tax').val(parseInt($('#prevTaxSelect').val(),10));
         $('#taxonModal').modal('hide');
     })
 });

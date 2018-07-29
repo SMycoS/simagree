@@ -2,15 +2,16 @@ import csv
 from .models import Identifiants, Themes, Nomenclature
 
 # Identifiants
-def replaceIdentifiants(filename):
+def replaceIdentifiants(file):
 
     # Ouverture du CSV
-    file = open(filename, 'r')
+    #file = open(filename, 'r')
 
     # Lecture du CSV
     rows = csv.reader(file, delimiter=';')
     # On passe la première colonne (headers du csv)
     next(rows, None)
+    elements = []
 
     # Itération sur les lignes
     for item in rows:
@@ -34,24 +35,30 @@ def replaceIdentifiants(filename):
         if (item[16]):
             obj.num_herbier = int(item[16])
         
+
         # Sauvegarde de l'objet
-        obj.save(using = 'simagree')
+        elements.append(obj)
         
     # Fermeture du fichier
     file.close()
+    Identifiants.objects.using('simagree').bulk_create(elements)
 
 
 # Nomenclature
-def replaceNomenclature(filename):
-    file = open(filename, 'r')
+def replaceNomenclature(file):
+    #file = open(filename, 'r')
     rows = csv.reader(file, delimiter=';')
     next(rows, None)
     old_taxon = 0
+    elements = []
     for item in rows:
         # on récupère le taxon courant
+        if(item[0] == ''):
+            continue
         current_taxon = int(item[0])
         if old_taxon != current_taxon:
             ident_instance = Identifiants.objects.using('simagree').get(taxon = current_taxon)
+            old_taxon = current_taxon
         
         obj = Nomenclature(
             taxon = ident_instance,
@@ -66,5 +73,14 @@ def replaceNomenclature(filename):
             biblio3 = item[9],
             moser = item[10]
         )
-        obj.save(using = 'simagree')
+        elements.append(obj)
     file.close()
+    Nomenclature.objects.using('simagree').bulk_create(elements)
+
+# Fonction de test
+def testCsv(filee):
+    rows = csv.reader(filee, delimiter=';')
+    next(rows, None)
+    for item in rows:
+        print(item)
+    filee.close()

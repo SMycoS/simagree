@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User, Group
 from django.urls import reverse
 from django.db.models import Q
 from django.core import serializers
@@ -9,14 +10,18 @@ from django.template import Context, loader
 
 import os
 import datetime
+import csv
+from io import StringIO
+
 
 
 # Create your views here.
 
 from .models import Identifiants, Themes, Nomenclature
 from .forms import *
-from .searchparser import dbRequest
+from .searchparser import dbRequest, light_dbRequest
 from .pdfgen import generateFiche
+from .csvparser import *
 
 ########## Vues pour la connexion ##########
 
@@ -61,7 +66,6 @@ def search(req):
             # ...
             # redirect to a new URL:
             items = dbRequest(form.cleaned_data)
-            print(items)
             return render(req, 'search.html', {'form' : form, 'shrooms' : items})
     else:
         form = SearchForm(auto_id=True)
@@ -74,16 +78,16 @@ def search(req):
 def add(req):
     if req.user.is_authenticated:
         # récupération de l'ensemble des taxons
-        all_taxons = Nomenclature.objects.using('simagree').select_related('taxon').only('taxon_id', 'genre', 'espece')
-        data = serializers.serialize("json", all_taxons)
         # première requête
         if req.method == 'GET':
             id_form = AddFormId(req.GET or None)
             nom_form = AddFormNom(req.GET or None)
+            search_form = LightSearchForm()
         # après envoi du formulaire
-        elif req.method == 'POST':
+        elif req.method == 'POST' and req.POST['action'] == "add":
             id_form = AddFormId(req.POST)
             nom_form = AddFormNom(req.POST)
+            search_form = LightSearchForm(req.POST)
             if id_form.is_valid():
                 print('id ok')
             if nom_form.is_valid():
@@ -101,22 +105,32 @@ def add(req):
                 values.taxon = inst
                 values.codesyno = 0
                 values.save(using='simagree')
-            
-            
-
-        return render(req, 'add.html', {'form' : id_form, 'form2' : nom_form,'all_tax' : data})
+        # Recherche
+        else:
+            id_form = AddFormId()
+            nom_form = AddFormNom()
+            search_form = LightSearchForm(req.POST)
+            if search_form.is_valid():
+                items = light_dbRequest(search_form.cleaned_data)
+                return render(req, 'add.html', {
+                    'form' : id_form, 
+                    'form2' : nom_form,
+                    'searchform' : search_form, 
+                    'results':items
+                    })
+        return render(req, 'add.html', {'form' : id_form, 'form2' : nom_form,'searchform' : search_form})
     else:
         return redirect(reverse(connexion))
 
 
 def addPartial(req):
     if req.user.is_authenticated:
-        all_taxons = Nomenclature.objects.using('simagree').select_related('taxon').only('taxon_id', 'genre', 'espece')
-        data = serializers.serialize("json", all_taxons)
         if req.method == 'GET':
             nom_form = AddFormPartial(req.GET or None)
-        elif req.method == 'POST':
+            search_form = LightSearchForm()
+        elif req.method == 'POST' and req.POST['action'] == "add":
             nom_form = AddFormPartial(req.POST)
+            search_form = LightSearchForm(req.POST)
             if nom_form.is_valid():
                 id = nom_form.cleaned_data['tax']
                 inst = Identifiants.objects.using('simagree').get(taxon = id)
@@ -126,7 +140,20 @@ def addPartial(req):
                 if values.codesyno == 0:
                     Nomenclature.objects.using('simagree').filter(Q(taxon=inst.taxon) & Q(codesyno=0)).update(codesyno=1)
                 values.save(using='simagree')
-        return render(req, 'add_partial.html', {'form' : nom_form, 'all_tax' : data})
+        else:
+            nom_form = AddFormPartial()
+            search_form = LightSearchForm(req.POST)
+            if search_form.is_valid():
+                items = light_dbRequest(search_form.cleaned_data)
+                return render(req, 'add_partial.html', {
+                    'form' : nom_form,
+                    'searchform' : search_form, 
+                    'results':items
+                    })
+        
+        return render(req, 'add_partial.html', {'form' : nom_form, 'searchform' : search_form})
+    
+    
     else:
         return redirect(reverse(connexion))
 
@@ -260,6 +287,7 @@ def addList(req):
     if not req.user.is_authenticated:
         return redirect(reverse(connexion))
     all_taxons = Nomenclature.objects.using('simagree').select_related('taxon').only('taxon_id', 'genre', 'espece')
+    data = serializers.serialize("json", all_taxons)
     if req.method == "POST":
         form = AddListForm(req.POST)
         if form.is_valid():
@@ -267,7 +295,7 @@ def addList(req):
     else:
         form = AddListForm()
 
-    return render(req, 'listes_create.html', {'form' : form, 'all_tax' : all_taxons})
+    return render(req, 'listes_create.html', {'form' : form, 'all_tax' : data})
 
 def showLists(req):
     if not req.user.is_authenticated:
@@ -299,26 +327,7 @@ def modList(req, id_liste):
     else:
         form = AddListForm(instance = liste)
 
-def testCsv(request):
-    # Create the HttpResponse object with the appropriate CSV header.
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
-
-    # The data is hard-coded here, but you could load it from a database or
-    # some other source.
-    csv_data = (
-        ('First row', 'Foo', 'Bar', 'Baz'),
-        ('Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"),
-    )
-    csv_header = ('A', 'B', 'C', 'D')
-
-    t = loader.get_template('csv_template.txt')
-    c = {
-        'header' : csv_header,
-        'data': csv_data }
-    response.write(t.render(c))
-    return response
-
+########## Vues pour l'import / export de la base en csv ##########
 
 def csvIdent(req):
     # Création d'une reponse au format csv
@@ -387,3 +396,26 @@ def csvNomenc(req):
     }
     response.write(template.render(c))
     return response
+    
+
+def upload_csv(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+    if "GET" == request.method:
+        form = UploadFileForm()
+        return render(request, "import_export.html", {'form' : form})
+    # if not GET, then proceed
+    form = UploadFileForm(request.POST, request.FILES)
+    if form.is_valid():
+        if form.cleaned_data['csv_id']:
+            up_file_id = request.FILES['csv_id']
+            csv_file_id = StringIO(up_file_id.read().decode('UTF-8'))
+            replaceIdentifiants(csv_file_id)
+
+        up_file_nom = request.FILES['csv_nom']
+        csv_file_nom = StringIO(up_file_nom.read().decode('UTF-8'))
+        replaceNomenclature(csv_file_nom)
+    return HttpResponseRedirect(reverse("imp-exp"))
+

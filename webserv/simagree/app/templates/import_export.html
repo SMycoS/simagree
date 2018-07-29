@@ -1,0 +1,32 @@
+{% extends 'partial/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Importer des fichiers CSV</h1>
+    <form action="." method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+            <div class="row">
+              <div class="form-group col-3">
+                <label for="{{ form.csv_id.id_for_label }}">Fichier Identifiants : </label>
+                {{ form.csv_id }}
+                <small class="form-text text-muted">{{ form.csv_id.errors }}</small>
+              </div>
+              <div class="form-group col-3">
+                <label for="{{ form.csv_id.id_for_label }}">Fichier Nomenclature : </label>
+                {{ form.csv_nom }}
+                <small class="form-text text-muted">{{ form.csv_nom.errors }}</small>
+              </div>
+            </div>
+            
+        <button type="submit">GO</button>
+    </form>
+</div>
+
+<div class="container">
+    <h1>Exporter la base en CSV</h1>
+    <a href="{% url 'export-ident' %}" class="btn btn-primary">Table Identifiants</a>
+    <a href="{% url 'export-nomenc' %}" class="btn btn-success">Table Nomenclature</a>
+</div>
+
+{% endblock %}

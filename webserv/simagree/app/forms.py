@@ -13,6 +13,11 @@ class SearchForm(forms.Form):
     presentSms = forms.BooleanField(label='Afficher uniquement les espèces présentes à la SMS', widget=forms.CheckboxInput, required=False)
     displaySyno = forms.BooleanField(label='Afficher les synonymes', widget=forms.CheckboxInput, required=False)
 
+class LightSearchForm(forms.Form):
+    nom = forms.CharField(label = 'Nom', required=False)
+    genre = forms.CharField(label = 'Genre', required=False)
+    espece = forms.CharField(label = 'Espèce', required=False)
+
 
 ########## AJOUT ##########
 
@@ -182,8 +187,12 @@ class AddThemeForm(forms.ModelForm):
 ########## LISTES ##########
 
 class AddListForm(forms.ModelForm):
-    opts = [('1', 'Opt 1'), ('2', 'Opt 2'), ('3', 'Opt 3')]
-    selectf = forms.MultipleChoiceField(label = '', widget=forms.SelectMultiple(attrs={'class' : 'form-control'}), choices = opts)
+    opts = []
+    all_taxons = Nomenclature.objects.using('simagree').only('taxon_id', 'genre', 'espece')
+    for k in all_taxons:
+        opts.append((str(k.taxon_id), str(k.taxon_id) + ' - ' + k.genre + ' ' + k.espece))
+
+    selectf = forms.MultipleChoiceField(label = '', widget=forms.SelectMultiple(attrs={'class' : 'form-control', 'id' : 'selectTaxon'}), choices = opts)
     class Meta:
         model = ListeRecolte
         fields = '__all__'
@@ -192,3 +201,7 @@ class AddListForm(forms.ModelForm):
             'date' : forms.DateInput(attrs={'class' : 'form-control', 'id' : 'datepicker'}),
             'lieu' : forms.TextInput(attrs={'class' : 'form-control'})
         }
+
+class UploadFileForm(forms.Form):
+    csv_id = forms.FileField(required = False)
+    csv_nom = forms.FileField()

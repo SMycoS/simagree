@@ -48,7 +48,7 @@
                             <a class="nav-link" href="{% url 'themes' %}">Thèmes</a>
                         </li>
                         <li class="nav-item {% if request.resolver_match.url_name == 'imp-exp' %}active{% endif %}">
-                            <a class="nav-link" href="{% url 'themes' %}">Importer / Exporter</a>
+                            <a class="nav-link" href="{% url 'imp-exp' %}">Importer / Exporter</a>
                         </li>
                     {% endif %}
                     {% if request.user.is_authenticated %}

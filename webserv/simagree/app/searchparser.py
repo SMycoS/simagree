@@ -45,6 +45,30 @@ def dbRequest(data):
         'id',
         'codesyno',
         'date',
-        'taxon__apparition'
+        'taxon__apparition',
+        'autorite'
         )
 
+
+def light_dbRequest(data):
+    # préparation de la requête
+    query = Nomenclature.objects.using('simagree').select_related('taxon')
+    
+    # filtres sur les champs texte
+    if (data['nom']):
+        query = query.filter(taxon__noms__icontains=data['nomUsuel'])
+    if (data['genre']):
+        query = query.filter(genre__icontains=data['genre'])
+    if (data['espece']):
+        query = query.filter(espece__icontains=data['espece'])
+
+    
+    # la requête n'est effectuée qu'une seule fois, ci-dessous
+    return query.order_by('taxon_id', 'codesyno').values(
+        'taxon_id',
+        'genre',
+        'espece',
+        'variete',
+        'forme',
+        'taxon__noms'
+        )
