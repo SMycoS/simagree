@@ -48,7 +48,7 @@
 
     <section id="searchResults">
         <h3>Nombre de résultats : {{shrooms|length}}</h3>
-        <div class="container">
+        <div class="container-fluid">
             <table>
                 <thead>
                     <tr>
@@ -95,13 +95,13 @@
                             <a class="dropdown-item" href="{% url 'modify-tax' tax=obj.taxon_id %}">Modifier le taxon</a>
                             <a class="dropdown-item" href="{% url 'modify' id=obj.id %}">Modifier l'espèce</a>
                             <div class="dropdown-divider"></div>
-                            <form action="/delete/" method="post" id="delEspForm{{obj.id}}">
+                            <form action="{% url 'delete' %}" method="post" id="delEspForm{{obj.id}}">
                                 {% csrf_token %}
                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
                                 <input type="hidden" name="ident" value="{{ obj.id }}">
                                 <button type="submit" class="dropdown-item" id="delEspBtn{{ obj.id }}">Supprimer l'espèce</button>
                             </form>
-                            <form action="/deleteTaxon/" method="post" id="delTaxForm{{obj.id}}">
+                            <form action="{% url 'delete-tax' %}" method="post" id="delTaxForm{{obj.id}}">
                                 {% csrf_token %}
                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
                                 <input type="hidden" name="taxon" value="{{ obj.taxon_id }}">

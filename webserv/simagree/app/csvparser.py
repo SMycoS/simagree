@@ -11,7 +11,16 @@ def replaceIdentifiants(file):
     rows = csv.reader(file, delimiter=';')
     # On passe la première colonne (headers du csv)
     next(rows, None)
+    
+    '''
+    Les éléments sont d'abord créés comme objets python stockés dans une liste,
+    puis sauvegardés dans la db via la méthode bulk_create des modèles django.
+    Cela permet de réduire le nombre d'appels à la db (1 contre n en procédant
+    objet par objet).
+    '''
     elements = []
+    theme_list = [] # liste des thèmes (string)
+    theme_list_instance = [] # liste des thèmes (instance)
 
     # Itération sur les lignes
     for item in rows:
@@ -35,12 +44,33 @@ def replaceIdentifiants(file):
         if (item[16]):
             obj.num_herbier = int(item[16])
         
+        # Ajout des thèmes dans la liste
 
-        # Sauvegarde de l'objet
+        for cpt,theme in enumerate([item[9], item[10], item[11], item[12]]):
+            if theme not in theme_list and theme != "":
+                theme_list.append(theme)
+                theme_instance = Themes(theme = theme)
+                theme_list_instance.append(theme_instance)
+            if theme != "":
+                if cpt == 0:
+                    obj.theme1 = theme_instance
+                elif cpt == 1:
+                    obj.theme2 = theme_instance
+                elif cpt == 2:
+                    obj.theme3 = theme_instance
+                elif cpt == 3:
+                    obj.theme4 = theme_instance
+            
+
+        # Sauvegarde de l'objet dans la liste
         elements.append(obj)
         
     # Fermeture du fichier
     file.close()
+
+    # Création des objets Theme
+    Themes.objects.using('simagree').bulk_create(theme_list_instance)
+    # Création des objets Identifiants
     Identifiants.objects.using('simagree').bulk_create(elements)
 
 

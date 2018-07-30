@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'simagree.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'sms_djangodb',
+        'NAME': 'sms_test',
         'USER': 'mycostra',
         'PASSWORD': 'mysecretpassword',
         'HOST': 'localhost',
@@ -87,7 +87,7 @@ DATABASES = {
         },
     'simagree': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'sms_simagree_bis',
+        'NAME': 'sms_test',
         'USER': 'mycostra',
         'PASSWORD': 'mysecretpassword',
         'HOST': 'localhost',

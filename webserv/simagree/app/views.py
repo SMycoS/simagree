@@ -159,7 +159,21 @@ def addPartial(req):
 
 def details(req, id_item):
     if req.user.is_authenticated:
-        item = Nomenclature.objects.using('simagree').select_related('taxon').filter(id = id_item).values('taxon_id', 'taxon__noms', 'taxon__comestible', 'taxon__sms', 'codesyno', 'genre', 'espece', 'variete', 'forme')
+        item = Nomenclature.objects.using('simagree').select_related('taxon').filter(id = id_item).values(
+            'taxon_id', 
+            'taxon__noms', 
+            'taxon__comestible', 
+            'taxon__sms',
+            'taxon__theme1',
+            'taxon__theme2',
+            'taxon__theme3',
+            'taxon__theme4',
+            'codesyno', 
+            'genre', 
+            'espece', 
+            'variete', 
+            'forme',
+            )
         try:
             others = Nomenclature.objects.using('simagree').filter(Q(taxon = item[0]['taxon_id']) & ~Q(id = id_item)).values('genre', 'espece', 'id', 'codesyno')
             return render(req, 'details.html', {'shroom' : item[0], 'others' : others})
@@ -283,26 +297,54 @@ def send_file(request, tax):
 
 ########## Vues pour la gestion des fiches récolte ##########
 
-def addList(req):
+def editListe(req, id_liste):
     if not req.user.is_authenticated:
         return redirect(reverse(connexion))
-    all_taxons = Nomenclature.objects.using('simagree').select_related('taxon').only('taxon_id', 'genre', 'espece')
-    data = serializers.serialize("json", all_taxons)
-    if req.method == "POST":
-        form = AddListForm(req.POST)
-        if form.is_valid():
-            print(form.cleaned_data)
+    if req.method == "POST" and req.POST['action'] == "search":
+        searchform = LightSearchForm(req.POST)
+        if searchform.is_valid():
+            results = light_dbRequest(searchform.cleaned_data)
+    elif req.method == "POST" and req.POST['action'] == "add":
+        searchform = LightSearchForm()
     else:
-        form = AddListForm()
-
-    return render(req, 'listes_create.html', {'form' : form, 'all_tax' : data})
+        searchorm = LightSearchForm()
+    return render(req, 'listes_create.html', {'searchform' : searchform})
 
 def showLists(req):
     if not req.user.is_authenticated:
         return redirect(reverse(connexion))
-    #listes = ListeRecolte.objects.using('simagree').all().values('date', 'lieu', 'id')
-    listes = []
-    return render(req, 'listes.html', {'listes' : listes})
+    listes = ListeRecolte.objects.using('simagree').all().only('lieu', 'date', 'id')
+    lieux = LieuRecolte.objects.using('simagree').all()
+    modal_display = ''
+    print(listes)
+    if req.method == "POST" and req.POST['action'] == "lieu":
+        liste_form = AddListForm()
+        lieu_form = AddLieuForm(req.POST)
+        modal_display = "lieu"
+        if lieu_form.is_valid():
+            lieu_form.save()
+    elif req.method == "POST" and req.POST['action'] == "liste":
+        liste_form = AddListForm(req.POST)
+        lieu_form = AddLieuForm()
+        modal_display = "liste"
+        if liste_form.is_valid():
+            liste_form.save()
+    elif req.method == "POST" and req.POST['action'] == "deleteLieu":
+        liste_form = AddListForm()
+        lieu_form = AddLieuForm()
+        lieu = LieuRecolte.objects.get(id = req.POST['ident'])
+        lieu.delete()
+    else:
+        liste_form = AddListForm()
+        lieu_form = AddLieuForm()
+
+    return render(req, 'listes.html', {
+        'listes' : listes,
+        'lieux' : lieux,
+        'listeform' : liste_form,
+        'lieuform' : lieu_form,
+        'modal_display' : modal_display
+        })
 
 def detailsList(req, id_liste):
     if not req.user.is_authenticated:
@@ -326,6 +368,7 @@ def modList(req, id_liste):
             print(form.cleaned_data)
     else:
         form = AddListForm(instance = liste)
+
 
 ########## Vues pour l'import / export de la base en csv ##########
 

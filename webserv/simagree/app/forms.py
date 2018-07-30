@@ -103,11 +103,15 @@ class AddFormPartial(forms.ModelForm):
         }
 
 class ModForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(ModForm, self).__init__(*args, **kwargs)
+        self.fields['taxon'].disabled = True
     class Meta:
         model = Nomenclature
         fields = '__all__'
-        exclude = ('taxon'),
         widgets = {
+            'taxon' : forms.NumberInput(attrs={'class' : 'form-control'}),
             'genre' : forms.TextInput(attrs={'class' : 'form-control'}),
             'espece' : forms.TextInput(attrs={'class' : 'form-control'}),
             'variete' : forms.TextInput(attrs={'class' : 'form-control'}),
@@ -187,20 +191,25 @@ class AddThemeForm(forms.ModelForm):
 ########## LISTES ##########
 
 class AddListForm(forms.ModelForm):
-    opts = []
-    all_taxons = Nomenclature.objects.using('simagree').only('taxon_id', 'genre', 'espece')
-    for k in all_taxons:
-        opts.append((str(k.taxon_id), str(k.taxon_id) + ' - ' + k.genre + ' ' + k.espece))
-
-    selectf = forms.MultipleChoiceField(label = '', widget=forms.SelectMultiple(attrs={'class' : 'form-control', 'id' : 'selectTaxon'}), choices = opts)
+    
     class Meta:
         model = ListeRecolte
         fields = '__all__'
         exclude = ('taxons'),
         widgets = {
             'date' : forms.DateInput(attrs={'class' : 'form-control', 'id' : 'datepicker'}),
-            'lieu' : forms.TextInput(attrs={'class' : 'form-control'})
         }
+
+class AddLieuForm(forms.ModelForm):
+    class Meta:
+        model = LieuRecolte
+        fields = '__all__'
+        widgets = {
+            'libelle' : forms.TextInput(attrs={'class' : 'form-control', 'id' : 'libelleInput'}),
+            'commune' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'lieu_dit' : forms.TextInput(attrs={'class' : 'form-control'})
+        }
+
 
 class UploadFileForm(forms.Form):
     csv_id = forms.FileField(required = False)

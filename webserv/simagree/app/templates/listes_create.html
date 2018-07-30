@@ -14,20 +14,10 @@
     }
 </style>
 {% endblock %}
+
 {% block content %}
 <div class="container listForm">
-    <form action="" method="post">
-        {% csrf_token %}
-        {{ form }}
-        <button type="submit" class = "btn btn-primary">GO</button>
-    </form>
-    <script>
-        $(document).ready(() => {
-            $('select[name="selectf"]').bootstrapDualListbox();
-            $('#datepicker').datepicker({
-                'format' : 'dd/mm/yyyy'
-            });
-        })
-    </script>
+    {{ searchform }}
+    
 </div>
 {% endblock %}

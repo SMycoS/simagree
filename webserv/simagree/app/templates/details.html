@@ -42,21 +42,40 @@
             </li>
         </ul>
         {% if shroom.variete %} 
-            <p class="lead">{{ shroom.variete }}</p>
+            <p class="lead">Variété : {{ shroom.variete }}</p>
         {% endif %}
         {% if shroom.forme %}
-            <p class="lead">{{ shroom.forme }}</p>
+            <p class="lead">Forme : {{ shroom.forme }}</p>
         {% endif %}
         <hr class="my-4">
-        <h2>Synonymes</h2>
-        <ul>
-            {% for item in others %}
-                {% if item.codesyno != 0 %}
-                    <li><a href="{% url 'details' id_item=item.id %}">{{ item.genre }} {{ item.espece }}</a></li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-        <p class="lead">
-        </p>
+        <div class="row">
+            <div class="col-6">
+                <h2>Synonymes</h2>
+                <ul>
+                    {% for item in others %}
+                        {% if item.codesyno != 0 %}
+                            <li><a href="{% url 'details' id_item=item.id %}">{{ item.genre }} {{ item.espece }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="col-6">
+                    <h2>Thèmes</h2>
+                    <ul>
+                        {% if shroom.taxon__theme1 %}
+                            <li>{{ shroom.taxon__theme1 }}</li>
+                        {% endif %}
+                        {% if shroom.taxon__theme1 %}
+                            <li>{{ shroom.taxon__theme2 }}</li>
+                        {% endif %}
+                        {% if shroom.taxon__theme1 %}
+                            <li>{{ shroom.taxon__theme3 }}</li>
+                        {% endif %}
+                        {% if shroom.taxon__theme1 %}
+                            <li>{{ shroom.taxon__theme4 }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+        </div>
       </div>
 {% endblock %}

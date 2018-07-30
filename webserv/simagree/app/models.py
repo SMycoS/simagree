@@ -58,9 +58,15 @@ class Nomenclature(models.Model):
         db_table = 'nomenclature'
 
 class LieuRecolte(models.Model):
-    libelle = models.TextField(unique = True)
     commune = models.TextField()
     lieu_dit = models.TextField()
+    libelle = models.TextField(unique = True)
+
+    def __unicode__(self):
+        return self.libelle
+    
+    def __str__(self):
+        return self.libelle
 
     class Meta:
         managed = True
