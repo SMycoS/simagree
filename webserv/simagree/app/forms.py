@@ -210,6 +210,27 @@ class AddLieuForm(forms.ModelForm):
             'lieu_dit' : forms.TextInput(attrs={'class' : 'form-control'})
         }
 
+class EditListTaxonsForm(forms.ModelForm):
+    class Meta:
+        model = ListeRecolte
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(EditListTaxonsForm, self).__init__(*args, **kwargs)
+        self.fields['date'].disabled = True
+        self.fields['lieu'].disabled = True
+        # Si le formulaire est initialisé avec une instance
+
+        #forms.ModelForm.__init__(self, *args, **kwargs)
+
+    select = forms.MultipleChoiceField(
+        label = '',
+        widget=forms.SelectMultiple(attrs={
+            'class' : 'form-control', 
+            'id' : 'selectTaxon'}), 
+            choices = [])
+    
+
 
 class UploadFileForm(forms.Form):
     csv_id = forms.FileField(required = False)

@@ -18,6 +18,14 @@
 {% block content %}
 <div class="container listForm">
     {{ searchform }}
-    
+    {{ listeform }}
+    <script>
+            $(document).ready(() => {
+                $('select[name="taxons"]').bootstrapDualListbox();
+                $('#datepicker').datepicker({
+                    'format' : 'dd/mm/yyyy'
+                });
+            })
+        </script>
 </div>
 {% endblock %}

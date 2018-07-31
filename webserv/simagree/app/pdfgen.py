@@ -42,23 +42,26 @@ def generateFiche(pdf_filename, vars, size = (325.984, 240.945)):
     cnv.rect(0 + marginX, midY + (1.5 * marginY) + 5, sizeX - (2 * marginX), sizeY / 5 , fill = False)
 
     # Noms usuels
-    if 'noms' in vars.keys():
-        cnv.drawString(marginX, midY + (0.5 * marginY), vars['noms'])
+    if 'noms' in vars.keys() and vars['noms'] != "":
+        line_offset = 0.3 * marginY
+        for cpt, nom in enumerate(vars['noms'].splitlines()):
+            if nom != "":
+                cnv.drawString(marginX, midY + (0.5 * marginY) - cpt * line_offset, nom)
 
     # Texte comestibilite
-    if 'comestibilite' in vars.keys():
+    if 'comestibilite' in vars.keys() and 'comestibilite' != "":
         if (vars['comestibilite'] == 'C'):
             com_txt = 'Comestible'
-            com_img = 'pdf_assets/Comest.bmp'
+            com_img = 'app/pdf_assets/Comest.bmp'
         elif (vars['comestibilite'] == 'NC'):
             com_txt = 'Non Comestible'
-            com_img = 'pdf_assets/NonCom.bmp'
+            com_img = 'app/pdf_assets/NonCom.bmp'
         elif (vars['comestibilite'] == 'T'):
             com_txt = 'Toxique'
-            com_img = 'pdf_assets/Toxique.bmp'
+            com_img = 'app/pdf_assets/Toxique.bmp'
         else:
             com_txt = 'Mortel'
-            com_img = 'pdf_assets/Mortel.bmp'
+            com_img = 'app/pdf_assets/Mortel.bmp'
 
         img_width = 138.75 / 2.5
         img_height = 131.25 / 2.5
@@ -124,23 +127,26 @@ def generateFicheTheme(pdf_filename, vars, size = (325.984, 240.945)):
 
 
     # Noms usuels
-    if 'noms' in vars.keys():
-        cnv.drawString(2 * marginX, midY + (0.5 * marginY), vars['noms'])
+    if 'noms' in vars.keys() and vars['noms'] != "":
+        line_offset = 0.3 * marginY
+        for cpt, nom in enumerate(vars['noms'].splitlines()):
+            if nom != "":
+                cnv.drawString(2 * marginX, midY + (0.5 * marginY) - cpt * line_offset, nom)
 
     # Texte comestibilite
-    if 'comestibilite' in vars.keys():
+    if 'comestibilite' in vars.keys() and vars['comestibilite'] != "":
         if (vars['comestibilite'] == 'C'):
             com_txt = 'Comestible'
-            com_img = 'pdf_assets/Comest.bmp'
+            com_img = 'app/pdf_assets/Comest.bmp'
         elif (vars['comestibilite'] == 'NC'):
             com_txt = 'Non Comestible'
-            com_img = 'pdf_assets/NonCom.bmp'
+            com_img = 'app/pdf_assets/NonCom.bmp'
         elif (vars['comestibilite'] == 'T'):
             com_txt = 'Toxique'
-            com_img = 'pdf_assets/Toxique.bmp'
+            com_img = 'app/pdf_assets/Toxique.bmp'
         else:
             com_txt = 'Mortel'
-            com_img = 'pdf_assets/Mortel.bmp'
+            com_img = 'app/pdf_assets/Mortel.bmp'
 
         img_width = 138.75 / 2.5
         img_height = 131.25 / 2.5

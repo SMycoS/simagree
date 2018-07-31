@@ -1,5 +1,5 @@
 {% extends 'partial/base.html' %}
-
+{% load tags_custom %}
 {% block custom_style %}
 <style>
     #nomValide {
@@ -13,7 +13,9 @@
 {% block content %}
 <div class="jumbotron">
         <h1 class="display-4">{{ shroom.taxon_id }} - {{ shroom.genre }} {{ shroom.espece }}</h1>
-        <p class="lead">{{ shroom.taxon__noms }}</p>
+        {% for nom in shroom.taxon__noms%}
+            <p class="lead">{{ nom }}</p>
+        {% endfor %}
         {% if codesyno != 0 %}
             {% for item in others %}
                 {% if item.codesyno == 0 %}
@@ -65,17 +67,23 @@
                         {% if shroom.taxon__theme1 %}
                             <li>{{ shroom.taxon__theme1 }}</li>
                         {% endif %}
-                        {% if shroom.taxon__theme1 %}
+                        {% if shroom.taxon__theme2 %}
                             <li>{{ shroom.taxon__theme2 }}</li>
                         {% endif %}
-                        {% if shroom.taxon__theme1 %}
+                        {% if shroom.taxon__theme3 %}
                             <li>{{ shroom.taxon__theme3 }}</li>
                         {% endif %}
-                        {% if shroom.taxon__theme1 %}
+                        {% if shroom.taxon__theme4 %}
                             <li>{{ shroom.taxon__theme4 }}</li>
                         {% endif %}
                     </ul>
                 </div>
         </div>
       </div>
+      {% if request.user|has_group:"Administrateurs" %}
+      <div class="container">
+          <a href="{% url 'sendfile' tax=shroom.taxon_id type="classique" %}" class="btn btn-warning">Générer une fiche classique</a>
+          <a href="{% url 'sendfile' tax=shroom.taxon_id type="theme" %}" class="btn btn-secondary">Générer une fiche thématique</a>
+      </div>
+      {% endif %}
 {% endblock %}

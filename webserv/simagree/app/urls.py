@@ -31,11 +31,12 @@ urlpatterns = [
     url(r'^logout/$', views.deconnexion, name = 'logout'),
     url(r'^themes/$', views.themes, name = 'themes'),
     url(r'^deletetheme/$', views.deleteTheme, name = 'themes_del'),
-    url(r'^file/(?P<tax>[0-9]+)/$', views.send_file, name = 'sendfile'),
-    url(r'^liste_add/$', views.editListe, name = 'editList'),
+    url(r'^file/(?P<tax>[0-9]+)/(?P<type>[a-z]+)/$', views.send_file, name = 'sendfile'),
+    url(r'^listes/edit/(?P<id_liste>[0-9]+)/$', views.editList, name = 'editList'),
     url(r'^listes/$', views.showLists, name = 'showLists'),
-    url(r'liste_details/(?P<id_liste>[0-9]+)/$', views.detailsList, name = 'detailsList'),
+    url(r'^liste_details/(?P<id_liste>[0-9]+)/$', views.detailsList, name = 'detailsList'),
     url(r'^export/identifiants/$', views.csvIdent, name = 'export-ident'),
     url(r'^export/nomenclature/$', views.csvNomenc, name = 'export-nomenc'),
-    url(r'^import_export/$', views.upload_csv, name = 'imp-exp')
+    url(r'^import_export/$', views.upload_csv, name = 'imp-exp'),
+    url(r'^pdfview/$', views.pdf_view, name = 'pdf-view')
 ]

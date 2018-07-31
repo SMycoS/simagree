@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, FileResponse, Http404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User, Group
 from django.urls import reverse
@@ -11,6 +11,7 @@ from django.template import Context, loader
 import os
 import datetime
 import csv
+import traceback
 from io import StringIO
 
 
@@ -20,8 +21,16 @@ from io import StringIO
 from .models import Identifiants, Themes, Nomenclature
 from .forms import *
 from .searchparser import dbRequest, light_dbRequest
-from .pdfgen import generateFiche
+from .pdfgen import *
 from .csvparser import *
+
+### Fonctions diverses ###
+
+def none2string(s):
+    if s is None:
+        return ''
+    else:
+        return str(s)
 
 ########## Vues pour la connexion ##########
 
@@ -173,12 +182,16 @@ def details(req, id_item):
             'espece', 
             'variete', 
             'forme',
-            )
-        try:
-            others = Nomenclature.objects.using('simagree').filter(Q(taxon = item[0]['taxon_id']) & ~Q(id = id_item)).values('genre', 'espece', 'id', 'codesyno')
-            return render(req, 'details.html', {'shroom' : item[0], 'others' : others})
+            )[0]
+        try:    
+            item['taxon__noms'] = item['taxon__noms'].splitlines()
         except:
-            return render(req, 'details.html', {'shroom' : item[0]})
+            pass
+        try:
+            others = Nomenclature.objects.using('simagree').filter(Q(taxon = item['taxon_id']) & ~Q(id = id_item)).values('genre', 'espece', 'id', 'codesyno')
+            return render(req, 'details.html', {'shroom' : item, 'others' : others})
+        except:
+            return render(req, 'details.html', {'shroom' : item})
     else:
         return redirect(reverse(connexion))
 
@@ -255,11 +268,17 @@ def deleteTheme(req):
 
 ########## Vues pour la gestion des pdf ##########
 
-def send_file(request, tax):
-    
+def send_file(request, tax, type):
+
+    #Suppression des fiches si trop nombreuses dans le dossier
+    files = next(os.walk('./app/pdf_assets/fiches'))[2]
+    if len(files) > 100:
+        for i in files:
+            os.remove('./app/pdf_assets/fiches/' + i)
+
     # Generation du pdf
-    item = Nomenclature.object.using('simagree').select_related('taxon').filter(id = rax).values(
-        'theme',
+    item = Nomenclature.objects.using('simagree').select_related('taxon').filter(Q(taxon = tax) & Q(codesyno = 0)).values(
+        'taxon__theme1',
         'taxon__fiche',
         'genre',
         'espece',
@@ -267,48 +286,51 @@ def send_file(request, tax):
         'taxon__noms',
         'forme' ,
         'taxon__comestible',
-    )
-    vars = {
-        'theme' : item['theme'],
-        'fiche' : item['taxon__fiche'],
-        'genre' : item['genre'],
-        'espece' : item['espece'],
-        'variete' : item['variete'],
-        'noms' : item['taxon__noms'],
-        'forme' : item['forme'],
-        'comestibilite' : item['taxon__comestible'],
-        'obs' : "C'est joli",
-        }
-    # save_name = '/static/fiches/' + id_item + '.pdf'
-    generateFiche(item['taxon_fiche'] + '.pdf', vars)
+    )[0]
+    vars = {}
 
-    # Envoi de fichier
-
-    """                                                                         
-    Send a file through Django without loading the whole file into              
-    memory at once. The FileWrapper will turn the file object into an           
-    iterator for chunks of 8KB.                                                 
-    """
-    filename = item['taxon__fiche'] + '.pdf'                               
-    wrapper = FileWrapper(file(filename))
-    response = HttpResponse(wrapper, content_type='text/plain')
-    response['Content-Length'] = os.path.getsize(filename)
-    return response
+    try:
+        vars['theme'] = none2string(item['taxon__theme1'])
+        vars['fiche'] = none2string(item['taxon__fiche'])
+        vars['genre'] = item['genre']
+        vars['espece'] = item['espece']
+        vars['variete'] = none2string(item['variete'])
+        vars['forme'] = none2string(item['forme'])
+        vars['noms'] = none2string(item['taxon__noms'])
+        vars['comestibilite'] = none2string(item['taxon__comestible'])
+        vars['obs'] = "C'est joli"
+        fullpath = 'app/pdf_assets/fiches/' + none2string(item['taxon__fiche']) + '.pdf'
+    except Exception as e:
+        raise Http404()
+    try:
+        if type == "theme":
+            generateFicheTheme(fullpath, vars)
+        else:
+            generateFiche(fullpath, vars)
+        return FileResponse(open(fullpath, 'rb'), content_type='application/pdf')
+    except FileNotFoundError:
+        raise Http404()
 
 ########## Vues pour la gestion des fiches récolte ##########
 
-def editListe(req, id_liste):
+def editList(req, id_liste):
     if not req.user.is_authenticated:
         return redirect(reverse(connexion))
+    liste_instance = ListeRecolte.objects.get(id = id_liste)
     if req.method == "POST" and req.POST['action'] == "search":
         searchform = LightSearchForm(req.POST)
+        listeform = EditListTaxonsForm(instance = liste_instance)
         if searchform.is_valid():
             results = light_dbRequest(searchform.cleaned_data)
-    elif req.method == "POST" and req.POST['action'] == "add":
+    elif req.method == "POST" and req.POST['action'] == "edit":
         searchform = LightSearchForm()
+        listeform = EditListTaxonsForm(instance=liste_instance)
+        if listeform.is_valid():
+            print('oui')
     else:
-        searchorm = LightSearchForm()
-    return render(req, 'listes_create.html', {'searchform' : searchform})
+        searchform = LightSearchForm()
+        listeform = EditListTaxonsForm(instance = liste_instance)
+    return render(req, 'listes_create.html', {'searchform' : searchform, 'listeform' : listeform})
 
 def showLists(req):
     if not req.user.is_authenticated:
@@ -316,7 +338,6 @@ def showLists(req):
     listes = ListeRecolte.objects.using('simagree').all().only('lieu', 'date', 'id')
     lieux = LieuRecolte.objects.using('simagree').all()
     modal_display = ''
-    print(listes)
     if req.method == "POST" and req.POST['action'] == "lieu":
         liste_form = AddListForm()
         lieu_form = AddLieuForm(req.POST)
@@ -461,4 +482,10 @@ def upload_csv(request):
         csv_file_nom = StringIO(up_file_nom.read().decode('UTF-8'))
         replaceNomenclature(csv_file_nom)
     return HttpResponseRedirect(reverse("imp-exp"))
+
+def pdf_view(request):
+    try:
+        return FileResponse(open('app/test1.pdf', 'rb'), content_type='application/pdf')
+    except FileNotFoundError:
+        raise Http404()
 
