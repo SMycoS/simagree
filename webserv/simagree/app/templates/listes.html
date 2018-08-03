@@ -1,7 +1,15 @@
 {% extends 'partial/base.html' %}
 
+{% block custom_style %}
+<style>
+        #searchResults {
+            margin: 0;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
-<section id="searchResults" class="container-fluid">
+<section id="searchResults" class="container-fluid listes">
     <div class="row">
     <div class="container col-3" id="sideBar">
             <!-- Button trigger modal LIEUX-->
@@ -12,12 +20,12 @@
             <form action="." method="post">
                     {% csrf_token %}
                     {{ listeform.non_field_errors }}
-                    <div class="form-group col-6">
+                    <div class="form-group col-8">
                             <label for="{{ listeform.lieu.id_for_label }}">Lieu : </label>
                             {{ listeform.lieu }}
                             <small class="form-text text-muted">{{ listeform.lieu.errors }}</small>
                     </div>
-                    <div class="form-group col-6">
+                    <div class="form-group col-8">
                             <label for="{{ listeform.date.id_for_label }}">Date : </label>
                             {{ listeform.date }}
                             <small class="form-text text-muted">{{ listeform.date.errors }}</small>
@@ -33,11 +41,14 @@
                         $('#datepicker').datepicker({
                             'format' : 'dd/mm/yyyy',
                         });
+                        $('select[name="lieu"]').chosen({
+                            width: '100%'
+                        })
                     });
                   </script>
               </form>
     </div>
-    <div class="container col-8">
+    <div class="container col-8 listes">
             <h3>Il y a actuellement {{listes|length}} listes</h3>
         <table>
             <thead>
@@ -93,6 +104,7 @@
                             <form action="." method="post">
                                 {% csrf_token %}
                                 {{ lieuform }}
+                                <br>
                                 <button type="submit" name="action" value="lieu" class="btn btn-primary">Ajouter</button>
                                 {% if modal_display == "lieu" %}
                                 <script>
