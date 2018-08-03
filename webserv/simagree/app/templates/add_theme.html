@@ -15,11 +15,10 @@
                 <tr>
                     <td>{{ theme.theme }}</td>
                     <td>
-                        <a href="#">Modifier</a>
                         <form action="{% url 'themes_del' %}" method="post">
                             {% csrf_token %}
                             <input type="hidden" name="ident" value="{{ theme.id }}">
-                            <button type="submit">Supprimer</button>
+                            <button type="submit" class="btn btn-danger">Supprimer</button>
                         </form>
                     </td>
                 </tr>

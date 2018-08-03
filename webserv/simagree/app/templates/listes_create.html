@@ -18,10 +18,29 @@
 {% block content %}
 <div class="container listForm">
     {{ searchform }}
-    {{ listeform }}
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ listeform.non_field_errors }}
+        <div class="row">
+            <div class="form-group col-3">
+                <label for="{{ listeform.date.id_for_label }}">Date : </label>
+                {{ listeform.date }}
+                <small class="form-text text-muted">{{ listeform.date.errors }}</small>
+            </div>
+            <div class="form-group col-3">
+                <label for="{{ listeform.lieu.id_for_label }}">Lieu : </label>
+                {{ listeform.lieu }}
+                <small class="form-text text-muted">{{ listeform.lieu.errors }}</small>
+            </div>
+        </div>
+        <div>
+            {{ listeform.taxons }}
+            {{ listeform.selectf }}
+        </div>
+    </form>
     <script>
             $(document).ready(() => {
-                $('select[name="taxons"]').bootstrapDualListbox();
+                $('select[name="selectf"]').bootstrapDualListbox();
                 $('#datepicker').datepicker({
                     'format' : 'dd/mm/yyyy'
                 });

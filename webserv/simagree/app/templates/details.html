@@ -12,14 +12,16 @@
 
 {% block content %}
 <div class="jumbotron">
-        <h1 class="display-4">{{ shroom.taxon_id }} - {{ shroom.genre }} {{ shroom.espece }}</h1>
+        <h1 class="display-4">{{ shroom.taxon_id }} - {{ shroom.genre }} {{ shroom.espece }}{% if shroom.variete %}, var. {{ shroom.variete }} {{ shroom.autorite }}{% endif %}</h1>
         {% for nom in shroom.taxon__noms%}
             <p class="lead">{{ nom }}</p>
         {% endfor %}
         {% if codesyno != 0 %}
             {% for item in others %}
                 {% if item.codesyno == 0 %}
-                    <p class="lead">Aussi connu sous le nom de <a href="{% url 'details' id_item=item.id%}" id="nomValide">{{ item.genre }} {{ item.espece }}</a></p>
+                    <p class="lead">Le nom actuellement valide est <a href="{% url 'details' id_item=item.id%}" id="nomValide">
+                        {{ item.genre }} {{ item.espece }}{% if item.variete %}, var. {{ item.variete }} {{ item.autorite }}{% endif %}
+                    </a></p>
                 {% endif %}
             {% endfor %}
         {% endif %}
@@ -51,7 +53,7 @@
         {% endif %}
         <hr class="my-4">
         <div class="row">
-            <div class="col-6">
+            <div class="col-3">
                 <h2>Synonymes</h2>
                 <ul>
                     {% for item in others %}
@@ -61,7 +63,7 @@
                     {% endfor %}
                 </ul>
             </div>
-            <div class="col-6">
+            <div class="col-3">
                     <h2>Thèmes</h2>
                     <ul>
                         {% if shroom.taxon__theme1 %}
@@ -78,6 +80,51 @@
                         {% endif %}
                     </ul>
                 </div>
+            <div class="col-3">
+                <h2>Iconographie</h2>
+                <ul>
+                    {% if shroom.taxon__icono1 %}
+                        <li>{{ shroom.taxon__icono1 }}</li>
+                    {% endif %}
+                    {% if shroom.taxon__icono2 %}
+                        <li>{{ shroom.taxon__icono2 }}</li>
+                    {% endif %}
+                    {% if shroom.taxon__icono3 %}
+                        <li>{{ shroom.taxon__icono3 }}</li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="col-3">
+                    <h2>Bibliographie</h2>
+                    <ul>
+                        {% if shroom.biblio1 %}
+                            <li>{{ shroom.biblio1 }}</li>
+                        {% endif %}
+                        {% if shroom.biblio2 %}
+                            <li>{{ shroom.biblio2 }}</li>
+                        {% endif %}
+                        {% if shroom.biblio3 %}
+                            <li>{{ shroom.biblio3 }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+        </div>
+        <hr class="my-4">
+        <div class="row">
+            <div class="col-6">
+                <h2>Ecologie</h2>
+                <p>{{ shroom.taxon__ecologie }}</p>
+                <h2>Notes</h2>
+                <p>{{ shroom.taxon__notes }}</p>
+            </div>
+            <div class="col-6">
+                <h2>Autorités</h2>
+                {{ shroom.autorite }}
+                <h2>MOSER</h2>
+                {{ shroom.moser }}
+                <h2>Date</h2>
+                {{ shroom.date }}
+            </div>
         </div>
       </div>
       {% if request.user|has_group:"Administrateurs" %}

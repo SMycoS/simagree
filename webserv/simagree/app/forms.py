@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import formset_factory, inlineformset_factory
 from .models import *
+import itertools
 
 ########## RECHERCHE ##########
 
@@ -211,24 +212,18 @@ class AddLieuForm(forms.ModelForm):
         }
 
 class EditListTaxonsForm(forms.ModelForm):
+    selectf = forms.ChoiceField(widget = forms.SelectMultiple, choices=[('1','1'), ('2','2'),('3','3'), ])
     class Meta:
         model = ListeRecolte
         fields = '__all__'
+        exclude = ('taxons', )
 
     def __init__(self, *args, **kwargs):
         super(EditListTaxonsForm, self).__init__(*args, **kwargs)
         self.fields['date'].disabled = True
         self.fields['lieu'].disabled = True
-        # Si le formulaire est initialisé avec une instance
+    
 
-        #forms.ModelForm.__init__(self, *args, **kwargs)
-
-    select = forms.MultipleChoiceField(
-        label = '',
-        widget=forms.SelectMultiple(attrs={
-            'class' : 'form-control', 
-            'id' : 'selectTaxon'}), 
-            choices = [])
     
 
 

@@ -24,7 +24,9 @@ from .searchparser import dbRequest, light_dbRequest
 from .pdfgen import *
 from .csvparser import *
 
-### Fonctions diverses ###
+### Divers ###
+
+req_size = 500 # nombre d'objets par requête de recherche
 
 def none2string(s):
     if s is None:
@@ -33,6 +35,9 @@ def none2string(s):
         return str(s)
 
 ########## Vues pour la connexion ##########
+
+def accueil(req):
+    return render(req, 'home.html')
 
 def connexion(request):
     error = False
@@ -46,6 +51,7 @@ def connexion(request):
                 login(request, user)  # nous connectons l'utilisateur
             else: # sinon une erreur sera affichée
                 error = True
+            return redirect(reverse(accueil))
     else:
         form = ConnexionForm()
 
@@ -59,8 +65,6 @@ def deconnexion(request):
 
 ########## Vues générales ##########
 
-def accueil(req):
-    return render(req, 'home.html')
 
 def search(req):
     if not req.user.is_authenticated:
@@ -74,12 +78,18 @@ def search(req):
             # process the data in form.cleaned_data as required
             # ...
             # redirect to a new URL:
-            items = dbRequest(form.cleaned_data)
-            return render(req, 'search.html', {'form' : form, 'shrooms' : items})
+            items = dbRequest(form.cleaned_data, (req_size, int(req.GET['page'])))
+            return render(req, 'search.html', {
+                'form' : form,
+                'shrooms' : items[1],
+                'total' : items[0],
+                'pages' : range(items[0] // req_size),
+                'pages_int' : items[0] // req_size
+                })
     else:
         form = SearchForm(auto_id=True)
 
-    return render(req, 'search.html',{'form' : form} )
+    return render(req, 'search.html',{'form' : form})
 
 
 ########## Vues pour la gestion des champignons ##########
@@ -114,6 +124,7 @@ def add(req):
                 values.taxon = inst
                 values.codesyno = 0
                 values.save(using='simagree')
+                return redirect(reverse(details, kwargs = {'id_item' : values.id}))
         # Recherche
         else:
             id_form = AddFormId()
@@ -149,6 +160,7 @@ def addPartial(req):
                 if values.codesyno == 0:
                     Nomenclature.objects.using('simagree').filter(Q(taxon=inst.taxon) & Q(codesyno=0)).update(codesyno=1)
                 values.save(using='simagree')
+                return redirect(reverse(details, kwargs = {'id_item' : values.id}))
         else:
             nom_form = AddFormPartial()
             search_form = LightSearchForm(req.POST)
@@ -177,18 +189,32 @@ def details(req, id_item):
             'taxon__theme2',
             'taxon__theme3',
             'taxon__theme4',
+            'taxon__fiche',
+            'taxon__apparition',
+            'taxon__notes',
+            'taxon__ecologie',
+            'taxon__icono1',
+            'taxon__icono2',
+            'taxon__icono3',
+            'taxon__num_herbier',
             'codesyno', 
             'genre', 
             'espece', 
             'variete', 
             'forme',
+            'autorite',
+            'biblio1',
+            'biblio2',
+            'biblio3',
+            'moser',
+            'date'
             )[0]
         try:    
             item['taxon__noms'] = item['taxon__noms'].splitlines()
         except:
             pass
         try:
-            others = Nomenclature.objects.using('simagree').filter(Q(taxon = item['taxon_id']) & ~Q(id = id_item)).values('genre', 'espece', 'id', 'codesyno')
+            others = Nomenclature.objects.using('simagree').filter(Q(taxon = item['taxon_id']) & ~Q(id = id_item)).values('genre', 'espece', 'id', 'codesyno', 'variete', 'autorite')
             return render(req, 'details.html', {'shroom' : item, 'others' : others})
         except:
             return render(req, 'details.html', {'shroom' : item})
@@ -317,11 +343,13 @@ def editList(req, id_liste):
     if not req.user.is_authenticated:
         return redirect(reverse(connexion))
     liste_instance = ListeRecolte.objects.get(id = id_liste)
+    opts = Nomenclature.objects.all()[:500]
+    current_items = liste_instance.initia
     if req.method == "POST" and req.POST['action'] == "search":
         searchform = LightSearchForm(req.POST)
         listeform = EditListTaxonsForm(instance = liste_instance)
         if searchform.is_valid():
-            results = light_dbRequest(searchform.cleaned_data)
+            results = light_dbRequest_bis(searchform.cleaned_data, (req_size, 1))
     elif req.method == "POST" and req.POST['action'] == "edit":
         searchform = LightSearchForm()
         listeform = EditListTaxonsForm(instance=liste_instance)
@@ -329,8 +357,11 @@ def editList(req, id_liste):
             print('oui')
     else:
         searchform = LightSearchForm()
-        listeform = EditListTaxonsForm(instance = liste_instance)
-    return render(req, 'listes_create.html', {'searchform' : searchform, 'listeform' : listeform})
+        listeform = EditListTaxonsForm(instance = liste_instance, base=opts, initial={'selectf': current_items})
+    return render(req, 'listes_create.html', {
+        'searchform' : searchform, 
+        'listeform' : listeform,
+        })
 
 def showLists(req):
     if not req.user.is_authenticated:
