@@ -2,6 +2,7 @@ from django import forms
 from django.forms import formset_factory, inlineformset_factory
 from .models import *
 import itertools
+from django.db.models import Q
 
 ########## RECHERCHE ##########
 
@@ -211,17 +212,52 @@ class AddLieuForm(forms.ModelForm):
             'lieu_dit' : forms.TextInput(attrs={'class' : 'form-control'})
         }
 
+        
+
 class EditListTaxonsForm(forms.ModelForm):
-    selectf = forms.ChoiceField(widget = forms.SelectMultiple, choices=[('1','1'), ('2','2'),('3','3'), ])
+    selectf = forms.MultipleChoiceField(widget = forms.SelectMultiple)
     class Meta:
         model = ListeRecolte
         fields = '__all__'
         exclude = ('taxons', )
 
     def __init__(self, *args, **kwargs):
+        self.page = kwargs.pop('page')
+        self.tax_list = kwargs.pop('taxons')
         super(EditListTaxonsForm, self).__init__(*args, **kwargs)
+
+        self.offset = (self.page - 1) * 1000
+        self.limit = self.offset + 1000
         self.fields['date'].disabled = True
         self.fields['lieu'].disabled = True
+        
+        self.init_choices = Nomenclature.objects.all().filter(Q(taxon__in = self.tax_list) & Q(codesyno = 0)).values(
+            'taxon',
+            'genre',
+            'espece',
+            'variete',
+            'forme'
+        )
+        self.other_choices =  Nomenclature.objects.all().filter(~Q(taxon__in = self.tax_list)).values(
+            'taxon',
+            'genre',
+            'espece',
+            'variete',
+            'forme'
+            )[self.offset:self.limit]
+        self.query = self.init_choices | self.other_choices
+        self.opts = []
+        self.inits = []
+        
+        for k in self.init_choices:
+            self.inits.append(k['taxon'])
+            self.opts.append((k['taxon'], str(k['taxon']) + ' - ' + k['genre'] + ' ' + k['espece'] + ' ( ' + k['variete'] + ' ' + k['forme'] + ' )'))
+        for k in self.other_choices:
+            self.opts.append((k['taxon'], str(k['taxon']) + ' - ' + k['genre'] + ' ' + k['espece'] + ' ( ' + k['variete'] + ' ' + k['forme'] + ' )'))
+        self.initial['selectf'] = self.inits
+        self.fields['selectf'].choices = self.opts
+
+
     
 
     

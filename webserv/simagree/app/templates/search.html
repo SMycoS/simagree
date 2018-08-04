@@ -143,11 +143,13 @@
                     {% endif %}
                 {% endfor %}
             <script>
-                var pages = {{ pages_int|safe }};
-                for(let i = 1; i < pages; i++) {
-                    let oldval = $(`.btn-page-${i}`).attr('href');
-                    $(`.btn-page-${i}`).attr('href', oldval.replace(/page=[0-9]/i,`page=${i}`));
-                }
+                $(document).ready(() => {
+                    var pages = {{ pages_int|safe }};
+                    for(let i = 1; i <= pages; i++) {
+                        let oldval = $(`.btn-page-${i}`).attr('href');
+                        $(`.btn-page-${i}`).attr('href', oldval.replace(/page=[0-9]/i,`page=${i}`));
+                    }
+                });
             </script>
         </div>
     </section>

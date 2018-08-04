@@ -34,6 +34,12 @@ def none2string(s):
     else:
         return str(s)
 
+def nb_pages(total, per_page):
+    res = total // per_page
+    if total - (res * per_page) > 0:
+        return res + 1
+    else:
+        return res
 ########## Vues pour la connexion ##########
 
 def accueil(req):
@@ -83,8 +89,8 @@ def search(req):
                 'form' : form,
                 'shrooms' : items[1],
                 'total' : items[0],
-                'pages' : range(items[0] // req_size),
-                'pages_int' : items[0] // req_size
+                'pages' : range(1, nb_pages(items[0], req_size) + 1),
+                'pages_int' : nb_pages(items[0], req_size)
                 })
     else:
         form = SearchForm(auto_id=True)
@@ -343,24 +349,44 @@ def editList(req, id_liste):
     if not req.user.is_authenticated:
         return redirect(reverse(connexion))
     liste_instance = ListeRecolte.objects.get(id = id_liste)
-    opts = Nomenclature.objects.all()[:500]
-    current_items = liste_instance.initia
-    if req.method == "POST" and req.POST['action'] == "search":
-        searchform = LightSearchForm(req.POST)
-        listeform = EditListTaxonsForm(instance = liste_instance)
-        if searchform.is_valid():
-            results = light_dbRequest_bis(searchform.cleaned_data, (req_size, 1))
-    elif req.method == "POST" and req.POST['action'] == "edit":
-        searchform = LightSearchForm()
-        listeform = EditListTaxonsForm(instance=liste_instance)
+    taxons = liste_instance.taxons.all()
+    liste_taxons = [i.taxon for i in taxons]
+    # calcul du total de pages
+    total = Nomenclature.objects.all().filter(~Q(taxon__in = liste_taxons)).count()
+    pages = nb_pages(total, 1000)
+    if req.method == "POST" and req.POST['action'] == "edit":
+        listeform = EditListTaxonsForm(
+            req.POST, 
+            instance=liste_instance,
+            taxons=liste_taxons, 
+            page=int(req.GET['page'])
+        )
         if listeform.is_valid():
-            print('oui')
+            liste_taxons = [int(i) for i in listeform.cleaned_data['selectf']]
+            # suppression de toutes les relations existantes
+            liste_instance.taxons.clear()
+            # ajout des relations
+            # add() prend un nombre variable d'arguments
+            # donc on "éclate" le QuerySet
+            liste_instance.taxons.add(*(Identifiants.objects.all().filter(
+                Q(taxon__in = liste_taxons))))
+            listeform = EditListTaxonsForm(
+                instance = liste_instance,
+                taxons=liste_taxons,
+                page=int(req.GET['page'])
+            )
+            
     else:
-        searchform = LightSearchForm()
-        listeform = EditListTaxonsForm(instance = liste_instance, base=opts, initial={'selectf': current_items})
+        listeform = EditListTaxonsForm(
+            instance = liste_instance,
+            taxons=liste_taxons,
+            page=int(req.GET['page'])
+        )
     return render(req, 'listes_create.html', {
-        'searchform' : searchform, 
         'listeform' : listeform,
+        'pages_int' : pages,
+        'pages' : range(1, pages + 1),
+        'liste' : id_liste
         })
 
 def showLists(req):

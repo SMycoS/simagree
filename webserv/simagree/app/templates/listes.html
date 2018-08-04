@@ -63,7 +63,7 @@
                 <tr>
                     <td>{{ k.date }}</td>
                     <td>{{ k.lieu.libelle }}</td>
-                    <td><a href="{% url 'editList' id_liste=k.id %}" class="btn btn-info"> Voir</a></td>
+                    <td><a href="{% url 'editList' id_liste=k.id %}?page=1" class="btn btn-info">Editer</a></td>
                 </tr>
                 {% endfor %}
             </tbody>

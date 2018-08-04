@@ -2,9 +2,6 @@
 
 {% block custom_style %}
 <style>
-    select {
-        width: 100%;
-    } 
     .box1, .box2 {
         margin-top : 30px;
         margin-bottom: 30px;
@@ -17,34 +14,55 @@
 
 {% block content %}
 <div class="container listForm">
-    {{ searchform }}
     <form action="" method="post">
         {% csrf_token %}
         {{ listeform.non_field_errors }}
         <div class="row">
-            <div class="form-group col-3">
+            <div class="form-group col-4">
                 <label for="{{ listeform.date.id_for_label }}">Date : </label>
                 {{ listeform.date }}
                 <small class="form-text text-muted">{{ listeform.date.errors }}</small>
             </div>
-            <div class="form-group col-3">
+            <div class="form-group col-6">
                 <label for="{{ listeform.lieu.id_for_label }}">Lieu : </label>
                 {{ listeform.lieu }}
                 <small class="form-text text-muted">{{ listeform.lieu.errors }}</small>
             </div>
         </div>
         <div>
-            {{ listeform.taxons }}
+            <p>Affichage de la page {{ request.GET.page }} sur {{ pages_int }}</p>
             {{ listeform.selectf }}
+            <small class="form-text text-muted">{{ listeform.selectf.errors }}</small>
         </div>
+        <button type="submit" class="btn btn-primary" name="action" value="edit">Modifier</button>
     </form>
     <script>
             $(document).ready(() => {
-                $('select[name="selectf"]').bootstrapDualListbox();
+                $('select[name="selectf"]').bootstrapDualListbox({
+                    selectorMinimalHeight: 500,
+                });
                 $('#datepicker').datepicker({
                     'format' : 'dd/mm/yyyy'
                 });
             })
         </script>
+    <div class="pages">
+            {% for p in pages %}
+                {% if p == request.GET.page|add:"0" %}
+                    <a href="{% url 'editList' id_liste=liste %}?{{ request.GET.urlencode }}" class="btn btn-warning btn-page-{{p}}">{{ p }}</a>
+                {% else %}
+                    <a href="{% url 'editList' id_liste=liste %}?{{ request.GET.urlencode }}" class="btn btn-primary btn-page-{{p}}">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+        <script>
+            $(document).ready(() => {
+                var pages = {{ pages_int|safe }};
+                for(let i = 1; i <= pages; i++) {
+                    let oldval = $(`.btn-page-${i}`).attr('href');
+                    $(`.btn-page-${i}`).attr('href', oldval.replace(/page=[0-9]/i,`page=${i}`));
+                }
+            });
+        </script>
+    </div>
 </div>
 {% endblock %}

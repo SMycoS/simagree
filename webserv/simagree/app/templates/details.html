@@ -12,7 +12,10 @@
 
 {% block content %}
 <div class="jumbotron">
-        <h1 class="display-4">{{ shroom.taxon_id }} - {{ shroom.genre }} {{ shroom.espece }}{% if shroom.variete %}, var. {{ shroom.variete }} {{ shroom.autorite }}{% endif %}</h1>
+        <h1 class="display-4">{{ shroom.taxon_id }} - <i>{{ shroom.genre|capfirst }} {{ shroom.espece|lower }}, </i>
+            {% if shroom.variete %}var. <i>{{ shroom.variete }}</i> {% endif %}
+            {% if shroom.forme %}f. <i>{{ shroom.forme }}</i> {% endif %}
+            {{ shroom.autorite }}</h1>
         {% for nom in shroom.taxon__noms%}
             <p class="lead">{{ nom }}</p>
         {% endfor %}
@@ -20,7 +23,10 @@
             {% for item in others %}
                 {% if item.codesyno == 0 %}
                     <p class="lead">Le nom actuellement valide est <a href="{% url 'details' id_item=item.id%}" id="nomValide">
-                        {{ item.genre }} {{ item.espece }}{% if item.variete %}, var. {{ item.variete }} {{ item.autorite }}{% endif %}
+                        <i>{{ item.genre|capfirst }} {{ item.espece|lower }}, </i>
+                        {% if item.variete %}var. <i>{{ item.variete|lower }}</i> {% endif %}
+                        {% if item.forme %}f. <i>{{ item.forme|lower }}</i> {% endif %}
+                        {{ item.autorite }}
                     </a></p>
                 {% endif %}
             {% endfor %}
@@ -28,7 +34,11 @@
         <ul>
             {% if shroom.taxon__sms %}
                 <li>
-                    Ce champignon est présent à la SMS
+                    Ce champignon <b>figure</b> à la SMS
+                </li>
+            {% else %}
+                <li>
+                    Ce champignon <b>ne figure pas</b> à la SMS
                 </li>
             {% endif %}
             <li>
@@ -45,20 +55,19 @@
                 {% endif %}
             </li>
         </ul>
-        {% if shroom.variete %} 
-            <p class="lead">Variété : {{ shroom.variete }}</p>
-        {% endif %}
-        {% if shroom.forme %}
-            <p class="lead">Forme : {{ shroom.forme }}</p>
-        {% endif %}
         <hr class="my-4">
         <div class="row">
-            <div class="col-3">
+            <div class="col-5">
                 <h2>Synonymes</h2>
                 <ul>
                     {% for item in others %}
                         {% if item.codesyno != 0 %}
-                            <li><a href="{% url 'details' id_item=item.id %}">{{ item.genre }} {{ item.espece }}</a></li>
+                            <li><a href="{% url 'details' id_item=item.id %}">
+                                    <i>{{ item.genre|capfirst }} {{ item.espece|lower }}, </i>
+                                    {% if item.variete %}var. <i>{{ item.variete|lower }}</i> {% endif %}
+                                    {% if item.forme %}f. <i>{{ item.forme|lower }}</i> {% endif %}
+                                    {{ item.autorite }}
+                            </a></li>
                         {% endif %}
                     {% endfor %}
                 </ul>
@@ -80,7 +89,7 @@
                         {% endif %}
                     </ul>
                 </div>
-            <div class="col-3">
+            <div class="col-4">
                 <h2>Iconographie</h2>
                 <ul>
                     {% if shroom.taxon__icono1 %}
@@ -94,35 +103,32 @@
                     {% endif %}
                 </ul>
             </div>
-            <div class="col-3">
-                    <h2>Bibliographie</h2>
-                    <ul>
-                        {% if shroom.biblio1 %}
-                            <li>{{ shroom.biblio1 }}</li>
-                        {% endif %}
-                        {% if shroom.biblio2 %}
-                            <li>{{ shroom.biblio2 }}</li>
-                        {% endif %}
-                        {% if shroom.biblio3 %}
-                            <li>{{ shroom.biblio3 }}</li>
-                        {% endif %}
-                    </ul>
-                </div>
         </div>
         <hr class="my-4">
         <div class="row">
-            <div class="col-6">
+            <div class="col-5">
                 <h2>Ecologie</h2>
                 <p>{{ shroom.taxon__ecologie }}</p>
                 <h2>Notes</h2>
                 <p>{{ shroom.taxon__notes }}</p>
             </div>
-            <div class="col-6">
-                <h2>Autorités</h2>
-                {{ shroom.autorite }}
-                <h2>MOSER</h2>
-                {{ shroom.moser }}
-                <h2>Date</h2>
+            <div class="col-3">
+
+            </div>
+            <div class="col-4">
+                <h2>Bibliographie</h2>
+                <ul>
+                    {% if shroom.biblio1 %}
+                        <li>{{ shroom.biblio1 }}</li>
+                    {% endif %}
+                    {% if shroom.biblio2 %}
+                        <li>{{ shroom.biblio2 }}</li>
+                    {% endif %}
+                    {% if shroom.biblio3 %}
+                        <li>{{ shroom.biblio3 }}</li>
+                    {% endif %}
+                </ul>
+                <h2>Date de dernière révision</h2>
                 {{ shroom.date }}
             </div>
         </div>
