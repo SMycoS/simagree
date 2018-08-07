@@ -1,6 +1,33 @@
 {% extends 'partial/base.html' %}
 
+{% block custom_style %}
+<style>
+  #changeCodeBox {
+    display: none;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="container infos">
+  {% for item in others %}
+    {% if item.codesyno == 0 %}
+      <h1>Edition de 
+          <i>{{ item.genre|capfirst }} {{ item.espece|lower }}</i>
+          {% if item.variete and item.variete.strip %} var. <i>{{ item.variete|lower }}</i>{% endif %}
+          {% if item.forme and item.forme.strip %} f. <i>{{ item.forme|lower }}</i>{% endif %}
+           {{ item.autorite }}
+      </h1>
+      <ul>
+    {% else %}
+     <li>{{ item.genre|capfirst }} {{ item.espece|lower }}</i>
+      {% if item.variete and item.variete.strip %} var. <i>{{ item.variete|lower }}</i>{% endif %}
+      {% if item.forme and item.forme.strip %} f. <i>{{ item.forme|lower }}</i>{% endif %}
+       {{ item.autorite }}</li>
+    {% endif %}
+  {% endfor %}
+  </ul>
+</div>
 <div class="container formDiv">
     <form class="form" method="POST" action="">
         {% csrf_token %}
@@ -15,6 +42,11 @@
                 <label for="{{ form.codesyno.id_for_label }}">Code Synonyme : </label>
                 {{ form.codesyno }}
                 <small class="form-text text-muted">{{ form.codesyno.errors }}</small>
+            </div>
+            <div class="form-group col-6" id="changeCodeBox">
+                <label for="changeCode" id="id_changeCode"></label>
+                <select name="changeCode" id="changeCode" class="form-control"></select>
+                </select>
             </div>
         </div>
         <div class="row">
@@ -46,11 +78,6 @@
                   <label for="{{ form.autorite.id_for_label }}">Autorité : </label>
                   {{ form.autorite }}
                   <small class="form-text text-muted">{{ form.autorite.errors }}</small>
-                </div>
-                <div class="form-group col-3">
-                  <label for="{{ form.moser.id_for_label }}">MOSER : </label>
-                  {{ form.moser }}
-                  <small class="form-text text-muted">{{ form.moser.errors }}</small>
                 </div>
               </div>
               <div class="row">
@@ -102,6 +129,37 @@
       </div>
 
 <script>
-    var tax = {{ all_tax|safe }};
+    var state = {{ state|safe }};
+    var data = {{ data|safe }};
+    
+    $(document).ready(() => {
+      var selector = $('select[name="changeCode"]');
+      var synoSelector = $('select[name="codesyno"]');
+      if(state == 2) {
+        synoSelector.val('1');
+      }
+      synoSelector.change(() => {
+        $('#changeCodeBox').show();
+        selector.empty();
+        if(state == 0) {
+          if(synoSelector.val() == "0") {
+            $('#changeCodeBox').hide();
+          }
+          $("#id_changeCode").text("Sélectionner un nouveau nom valide :");
+          for(let i = 0; i < data.length; i++) {
+            selector.append(`<option value="${data[i].pk}">${data[i].fields.genre} ${data[i].fields.espece} ( ${data[i].fields.variete} ${data[i].fields.forme} ) - ${data[i].fields.autorite}</option>`);
+          }
+        } else {
+          if(synoSelector.val() == "0") {
+            $("#id_changeCode").text("Sélectionner un nouvel état pour l'ancien nom valide :");
+            selector.append(`<option value="1">SYN</option>`);
+            selector.append(`<option value="3">SYN USUEL</option>`);
+          } else {
+            $('#changeCodeBox').hide();
+          }
+        }
+        
+      });
+    });
 </script>
 {% endblock %}

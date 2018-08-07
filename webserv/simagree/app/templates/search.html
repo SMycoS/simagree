@@ -1,4 +1,5 @@
 {% extends 'partial/base.html' %}
+{% load tags_custom %}
 
 {% block content %}
     <section>
@@ -40,6 +41,13 @@
                         {{ form.displaySyno }}
                         <small class="form-text text-muted">{{ form.displaySyno.errors }}</small>
                     </div>
+                    {% if request.user|has_group:"Administrateurs" %}
+                    <div class="form-group col-2">
+                        <label for="{{ form.a_imprimer.id_for_label }}">A imprimer : </label>
+                        {{ form.a_imprimer }}
+                        <small class="form-text text-muted">{{ form.a_imprimer.errors }}</small>
+                    </div>
+                    {% endif %}
                 </div>
                 <input type="hidden" name="page" value="1">
 
@@ -79,7 +87,7 @@
                     {% if obj.codesyno == 0 %}
                     <td>VALIDE</td>
                     {% elif obj.codesyno == 3 %}
-                    <td>SYN CONNU</td>
+                    <td>SYN USUEL</td>
                     {% else %}
                     <td>SYN</td>
                     {% endif %}

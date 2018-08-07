@@ -7,14 +7,18 @@
         font-size: 1.5em;
         text-decoration: none;
     }
+    .fiche {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="jumbotron">
-        <h1 class="display-4">{{ shroom.taxon_id }} - <i>{{ shroom.genre|capfirst }} {{ shroom.espece|lower }}, </i>
-            {% if shroom.variete %}var. <i>{{ shroom.variete }}</i> {% endif %}
-            {% if shroom.forme %}f. <i>{{ shroom.forme }}</i> {% endif %}
+        <h1 class="display-4">{{ shroom.taxon_id }} - <i>{{ shroom.genre|capfirst }} {{ shroom.espece|lower }}</i>
+            {% if shroom.variete and shroom.variete.strip %}var. <i>{{ shroom.variete|lower }}</i> {% endif %}
+            {% if shroom.forme and shroom.forme.strip %}f. <i>{{ shroom.forme|lower }}</i> {% endif %}
             {{ shroom.autorite }}</h1>
         {% for nom in shroom.taxon__noms%}
             <p class="lead">{{ nom }}</p>
@@ -22,10 +26,10 @@
         {% if codesyno != 0 %}
             {% for item in others %}
                 {% if item.codesyno == 0 %}
-                    <p class="lead">Le nom actuellement valide est <a href="{% url 'details' id_item=item.id%}" id="nomValide">
-                        <i>{{ item.genre|capfirst }} {{ item.espece|lower }}, </i>
-                        {% if item.variete %}var. <i>{{ item.variete|lower }}</i> {% endif %}
-                        {% if item.forme %}f. <i>{{ item.forme|lower }}</i> {% endif %}
+                    <p class="lead">Le nom valide est <a href="{% url 'details' id_item=item.id%}" id="nomValide">
+                        <i>{{ item.genre|capfirst }} {{ item.espece|lower }}</i>
+                        {% if item.variete and item.variete.strip %}var. <i>{{ item.variete|lower }}</i> {% endif %}
+                        {% if item.forme and item.forme.strip %}f. <i>{{ item.forme|lower }}</i> {% endif %}
                         {{ item.autorite }}
                     </a></p>
                 {% endif %}
@@ -48,13 +52,14 @@
                     Ce champignon est <b>non comestible</b>
                 {% elif shroom.taxon__comestible == 'T' %}
                     Ce champignon est <b>toxique</b>
-                {% elif shroom.taxon__comestible == 'M' %}
+                {% elif shroom.taxon__comestible == 'MO' %}
                     Ce champignon est <b>mortel</b>
                 {% else %}
                     Aucune information concernant sa comestibilité
                 {% endif %}
             </li>
         </ul>
+        <p class="fiche">Fiche n° {{ shroom.taxon__fiche }}</p>
         <hr class="my-4">
         <div class="row">
             <div class="col-5">
@@ -63,9 +68,9 @@
                     {% for item in others %}
                         {% if item.codesyno != 0 %}
                             <li><a href="{% url 'details' id_item=item.id %}">
-                                    <i>{{ item.genre|capfirst }} {{ item.espece|lower }}, </i>
-                                    {% if item.variete %}var. <i>{{ item.variete|lower }}</i> {% endif %}
-                                    {% if item.forme %}f. <i>{{ item.forme|lower }}</i> {% endif %}
+                                    <i>{{ item.genre|capfirst }} {{ item.espece|lower }}</i>
+                                    {% if item.variete %} var. <i>{{ item.variete|lower }}</i> {% endif %}
+                                    {% if item.forme and item.forme.strip %} f. <i>{{ item.forme|lower }}</i> {% endif %}
                                     {{ item.autorite }}
                             </a></li>
                         {% endif %}

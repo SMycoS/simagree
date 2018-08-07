@@ -1,6 +1,27 @@
 {% extends 'partial/base.html' %}
 
 {% block content %}
+<div class="container infos">
+    <h1>Edition du taxon {{ shrooms.0.taxon }}</h1>
+    <ul>
+      {% for item in shrooms %}
+        {% if item.codesyno == 0 %}
+        <li><b><i>{{ item.genre|capfirst }} {{ item.espece|lower }}</i>
+            {% if item.variete and item.variete.strip %} var. <i>{{ item.variete|lower }}</i>{% endif %}
+            {% if item.forme and item.forme.strip %} f. <i>{{ item.forme|lower }}</i>{% endif %}
+             {{ item.autorite }}</b>
+          </li>
+        {% else %}
+        <li><i>{{ item.genre|capfirst }} {{ item.espece|lower }}</i>
+          {% if item.variete and item.variete.strip %} var. <i>{{ item.variete|lower }}</i>{% endif %}
+          {% if item.forme and item.forme.strip %} f. <i>{{ item.forme|lower }}</i>{% endif %}
+            {{ item.autorite }}
+        </li>
+        {% endif %}
+      {% endfor %}
+    
+    </ul>
+  </div>
 <div class="container formDiv">
         <form class="form-horizontal" method="POST" action=".">
                 {% csrf_token %}
@@ -42,11 +63,6 @@
                   </div>
                 </div>
                 <div class="row">
-                  <div class="form-group col-3">
-                    <label for="{{ form.lieu.id_for_label }}">Lieu : </label>
-                    {{ form.lieu }}
-                    <small class="form-text text-muted">{{ form.lieu.errors }}</small>
-                  </div>
                   <div class="form-group col-3">
                     <label for="{{ form.apparition.id_for_label }}">Apparition : </label>
                     {{ form.apparition }}

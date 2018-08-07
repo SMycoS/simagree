@@ -135,4 +135,4 @@ USE_TZ = True
 
 STATIC_URL = '/app/static/'
 INTERNAL_IPS = ['127.0.0.1']
-
+SESSION_COOKIE_AGE = 900

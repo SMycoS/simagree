@@ -40,6 +40,18 @@ def nb_pages(total, per_page):
         return res + 1
     else:
         return res
+        
+def genSyno(instance, valide = None):
+    taxon = instance.taxon
+    if valide is None:
+        valide = Nomenclature.objects.using('simagree').filter(Q(taxon = taxon) & Q(codesyno = 0)).values('genre')[0]['genre']
+    else:
+        valide = valide.genre
+    if (valide == instance.genre) and (instance.codesyno != 1):
+        Nomenclature.objects.using('simagree').filter(id = instance.id).update(codesyno = 1)
+    elif (instance.codesyno != 2):
+        Nomenclature.objects.using('simagree').filter(id = instance.id).update(codesyno = 2)
+
 ########## Vues pour la connexion ##########
 
 def accueil(req):
@@ -113,15 +125,7 @@ def add(req):
             id_form = AddFormId(req.POST)
             nom_form = AddFormNom(req.POST)
             search_form = LightSearchForm(req.POST)
-            if id_form.is_valid():
-                print('id ok')
-            if nom_form.is_valid():
-                print('nom ok')
-            else:
-                print(nom_form.errors)
-                print(nom_form)
             if id_form.is_valid() and nom_form.is_valid():
-                print('valid')
                 # sauvegarde dans la table Identifiants
                 inst = id_form.save(commit = False)
                 inst.save(using='simagree')
@@ -187,7 +191,8 @@ def addPartial(req):
 def details(req, id_item):
     if req.user.is_authenticated:
         item = Nomenclature.objects.using('simagree').select_related('taxon').filter(id = id_item).values(
-            'taxon_id', 
+            'taxon_id',
+            'taxon__fiche',
             'taxon__noms', 
             'taxon__comestible', 
             'taxon__sms',
@@ -220,7 +225,7 @@ def details(req, id_item):
         except:
             pass
         try:
-            others = Nomenclature.objects.using('simagree').filter(Q(taxon = item['taxon_id']) & ~Q(id = id_item)).values('genre', 'espece', 'id', 'codesyno', 'variete', 'autorite')
+            others = Nomenclature.objects.using('simagree').filter(Q(taxon = item['taxon_id']) & ~Q(id = id_item)).values('genre', 'espece', 'id', 'codesyno', 'variete', 'autorite', 'forme')
             return render(req, 'details.html', {'shroom' : item, 'others' : others})
         except:
             return render(req, 'details.html', {'shroom' : item})
@@ -241,7 +246,18 @@ def deleteTaxon(req):
 
 def modify(req, id):
     if req.user.is_authenticated:
-        inst_nom = Nomenclature.objects.using('simagree').get(id = id)
+        inst_nom = Nomenclature.objects.get(id = id)
+        old_code = inst_nom.codesyno
+        others = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon)).order_by('codesyno').values(
+            'genre',
+            'espece',
+            'variete',
+            'forme',
+            'codesyno',
+            'autorite',
+            'id'
+        )
+        others_json = serializers.serialize("json", Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & ~Q(codesyno = 0)))
         # première requête
         if req.method == 'GET':
             nom_form = ModForm(req.GET or None, instance=inst_nom)
@@ -250,13 +266,66 @@ def modify(req, id):
             nom_form = ModForm(req.POST, instance = inst_nom)
             if nom_form.is_valid():
                 # sauvegarde dans la table Nomenclature
+                
                 values = nom_form.save(commit = False)
-                # vérification du code synonyme
-                if values.codesyno == 0:
-                    Nomenclature.objects.using('simagree').filter(Q(taxon=values.taxon) & Q(codesyno=0)).update(codesyno=1)
-                values.save(using='simagree')
+                values.codesyno = int(values.codesyno)
+                # vérification du code synonyme (si il y a eu changement)
+                if (values.codesyno != old_code):
+                    # Cas : anciennement valide (passage VALIDE -> SYN)
+                    if old_code == 0:
+                        # On récupère l'id du nouveau valide
+                        new_valide = int(req.POST['changeCode'])
+                        # Mise à jour dans la BDD
+                        valide = Nomenclature.objects.filter(id = new_valide)
+                        valide.update(codesyno = 0)
+                        # si un synonyme était déjà SYN USUEL, on le change en SYN
+                        if values.codesyno == 3:
+                            if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
+                                old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
+                                genSyno(old_usuel)
+                        synonymes = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno__in = [1,2]))
+                        for s in synonymes:
+                            gensyno(s, valide = valide[0])
+                    # Cas : synonyme
+                    else:
+                        # passage SYN -> VALIDE
+                        if values.codesyno == 0:
+                            old_valide = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 0))
+                            # Etat dans lequel mettre l'ancien VALIDE
+                            old_state = int(req.POST['changeCode'])
+                            # SYN (classique)
+                            if old_state == 1:
+                                genSyno(old_valide[0], valide = values) # mise à jour automatique avec le code 1 ou 2
+                            # SYN USUEL
+                            else:
+                                # si un synonyme était déjà SYN USUEL, on le change en SYN
+                                if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
+                                    old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
+                                    genSyno(old_usuel, valide = values)
 
-        return render(req, 'modify.html', {'form' : nom_form})
+                                # changement de l'ancien VALIDE en SYN USUEL
+                                old_valide.update(codesyno = 3)
+                            # On met à jour de la des synonymes
+                            synonymes = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno__in = [1,2]))
+                            for s in synonymes:
+                                genSyno(s, valide = values)
+                        # passage SYN -> SYN USUEL
+                        else:
+                            # si un synonyme était déjà SYN USUEL, on le change en SYN
+                            if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
+                                old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
+                                genSyno(old_usuel)
+
+
+                values.save(using='simagree')
+                return redirect(reverse(details, kwargs = {'id_item' : values.id}))
+
+        return render(req, 'modify.html', {
+            'form' : nom_form,
+            'others' : others,
+            'data' : others_json,
+            'state' : inst_nom.codesyno
+            })
     else:
         return redirect(reverse(connexion))
 
@@ -264,6 +333,15 @@ def modifyTaxon(req, tax):
     if not req.user.is_authenticated:
         return redirect(reverse(connexion))
     inst = Identifiants.objects.using('simagree').get(taxon = tax)
+    shrooms = Nomenclature.objects.filter(taxon = tax).order_by('codesyno').values(
+        'genre',
+        'espece',
+        'variete',
+        'forme',
+        'autorite',
+        'codesyno',
+        'taxon'
+    )
     if req.method == 'GET':
         form = ModFormTax(req.GET or None, instance = inst)
     elif req.method == 'POST':
@@ -271,7 +349,9 @@ def modifyTaxon(req, tax):
         if form.is_valid():
             values = form.save(commit = False)
             values.save()
-    return render(req, 'modify_tax.html', {'form' : form})
+            valide = Nomenclature.objects.get(taxon = values.taxon)
+            return redirect(reverse(details, kwargs = {'id_item' : valide.id}))
+    return render(req, 'modify_tax.html', {'form' : form, 'shrooms' : shrooms})
 
 
 
@@ -545,4 +625,3 @@ def pdf_view(request):
         return FileResponse(open('app/test1.pdf', 'rb'), content_type='application/pdf')
     except FileNotFoundError:
         raise Http404()
-

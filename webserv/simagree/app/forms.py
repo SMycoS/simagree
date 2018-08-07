@@ -14,9 +14,9 @@ class SearchForm(forms.Form):
     comestible = forms.ChoiceField(label='Comestible', widget=forms.Select, choices=opts)
     presentSms = forms.BooleanField(label='Afficher uniquement les espèces présentes à la SMS', widget=forms.CheckboxInput, required=False)
     displaySyno = forms.BooleanField(label='Afficher les synonymes', widget=forms.CheckboxInput, required=False)
+    a_imprimer = forms.BooleanField(label = 'A imprimer', widget=forms.CheckboxInput, required=False)
 
 class LightSearchForm(forms.Form):
-    nom = forms.CharField(label = 'Nom', required=False)
     genre = forms.CharField(label = 'Genre', required=False)
     espece = forms.CharField(label = 'Espèce', required=False)
 
@@ -35,7 +35,6 @@ class AddFormNom(forms.ModelForm):
             'variete' : forms.TextInput(attrs={'class' : 'form-control'}),
             'forme' : forms.TextInput(attrs={'class' : 'form-control'}),
             'autorite' : forms.TextInput(attrs={'class' : 'form-control'}),
-            'moser' : forms.TextInput(attrs={'class' : 'form-control'}),
             'biblio1' : forms.TextInput(attrs={'class' : 'form-control'}),
             'biblio2' : forms.TextInput(attrs={'class' : 'form-control'}),
             'biblio3' : forms.TextInput(attrs={'class' : 'form-control'}),
@@ -65,7 +64,6 @@ class AddFormId(forms.ModelForm):
             'comestible' : forms.TextInput(attrs={'class' : 'form-control'}),
             'sms' : forms.NullBooleanSelect(attrs={'class' : 'form-control'}),
             'a_imprimer' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
-            'lieu' : forms.TextInput(attrs={'class' : 'form-control'}),
             'apparition' : forms.TextInput(attrs={'class' : 'form-control'}),
             'notes' : forms.Textarea(attrs={'class' : 'form-control'}),
             'ecologie' : forms.TextInput(attrs={'class' : 'form-control'}),
@@ -109,6 +107,7 @@ class ModForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ModForm, self).__init__(*args, **kwargs)
         self.fields['taxon'].disabled = True
+
     class Meta:
         model = Nomenclature
         fields = '__all__'
@@ -119,11 +118,10 @@ class ModForm(forms.ModelForm):
             'variete' : forms.TextInput(attrs={'class' : 'form-control'}),
             'forme' : forms.TextInput(attrs={'class' : 'form-control'}),
             'autorite' : forms.TextInput(attrs={'class' : 'form-control'}),
-            'moser' : forms.TextInput(attrs={'class' : 'form-control'}),
             'biblio1' : forms.TextInput(attrs={'class' : 'form-control'}),
             'biblio2' : forms.TextInput(attrs={'class' : 'form-control'}),
             'biblio3' : forms.TextInput(attrs={'class' : 'form-control'}),
-            'codesyno' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'codesyno' : forms.Select(attrs={'class' : 'form-control'}, choices = [('0', 'VALIDE'), ('1', 'SYN'), ('3', 'SYN USUEL')]),
         }
 
 class ModFormTax(forms.ModelForm):
@@ -151,7 +149,6 @@ class ModFormTax(forms.ModelForm):
             'comestible' : forms.TextInput(attrs={'class' : 'form-control'}),
             'sms' : forms.NullBooleanSelect(attrs={'class' : 'form-control'}),
             'a_imprimer' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
-            'lieu' : forms.TextInput(attrs={'class' : 'form-control'}),
             'apparition' : forms.TextInput(attrs={'class' : 'form-control'}),
             'notes' : forms.Textarea(attrs={'class' : 'form-control'}),
             'ecologie' : forms.TextInput(attrs={'class' : 'form-control'}),

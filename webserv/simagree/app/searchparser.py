@@ -21,6 +21,8 @@ def dbRequest(data, size):
         query = query.filter(codesyno=0) # uniquement nom principal
     if (data['presentSms']):
         query = query.filter(taxon__sms=True)
+    if (data['a_imprimer']):
+        query = query.filter(taxon__a_imprimer = True)
     
     # filtres sur les champs texte
     if (data['nomUsuel']):
@@ -61,8 +63,6 @@ def light_dbRequest(data):
     query = Nomenclature.objects.using('simagree').select_related('taxon')
     
     # filtres sur les champs texte
-    if (data['nom']):
-        query = query.filter(taxon__noms__icontains=data['nomUsuel'])
     if (data['genre']):
         query = query.filter(genre__icontains=data['genre'])
     if (data['espece']):
@@ -87,8 +87,6 @@ def light_dbRequest_bis(data, size):
     query = Nomenclature.objects.using('simagree').select_related('taxon')
     
     # filtres sur les champs texte
-    if (data['nom']):
-        query = query.filter(taxon__noms__icontains=data['nomUsuel'])
     if (data['genre']):
         query = query.filter(genre__icontains=data['genre'])
     if (data['espece']):
