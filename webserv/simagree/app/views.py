@@ -7,6 +7,7 @@ from django.db.models import Q, Max
 from django.core import serializers
 from wsgiref.util import FileWrapper
 from django.template import Context, loader
+from django.contrib import messages
 
 import os
 import datetime
@@ -44,13 +45,13 @@ def nb_pages(total, per_page):
 def genSyno(instance, valide = None):
     taxon = instance.taxon
     if valide is None:
-        valide = Nomenclature.objects.using('simagree').filter(Q(taxon = taxon) & Q(codesyno = 0)).values('genre')[0]['genre']
+        valide = Nomenclature.objects.filter(Q(taxon = taxon) & Q(codesyno = 0)).values('genre')[0]['genre']
     else:
         valide = valide.genre
     if (valide == instance.genre) and (instance.codesyno != 1):
-        Nomenclature.objects.using('simagree').filter(id = instance.id).update(codesyno = 1)
+        Nomenclature.objects.filter(id = instance.id).update(codesyno = 1)
     elif (instance.codesyno != 2):
-        Nomenclature.objects.using('simagree').filter(id = instance.id).update(codesyno = 2)
+        Nomenclature.objects.filter(id = instance.id).update(codesyno = 2)
 
 ########## Vues pour la connexion ##########
 
@@ -67,6 +68,7 @@ def connexion(request):
             user = authenticate(username=username, password=password)  # Nous vérifions si les données sont correctes
             if user:  # Si l'objet renvoyé n'est pas None
                 login(request, user)  # nous connectons l'utilisateur
+                messages.success(request, 'Vous êtes à présent authentifié !')
             else: # sinon une erreur sera affichée
                 error = True
             return redirect(reverse(accueil))
@@ -167,12 +169,12 @@ def addPartial(req):
             search_form = LightSearchForm(req.POST)
             if nom_form.is_valid():
                 id = nom_form.cleaned_data['tax']
-                inst = Identifiants.objects.using('simagree').get(taxon = id)
+                inst = Identifiants.objects.get(taxon = id)
                 values = nom_form.save(commit = False)
                 values.taxon = inst
                 # vérification du code synonyme
                 if values.codesyno == 0:
-                    old_valide = Nomenclature.objects.using('simagree').filter(Q(taxon=inst.taxon) & Q(codesyno=0))[0]
+                    old_valide = Nomenclature.objects.filter(Q(taxon=inst.taxon) & Q(codesyno=0))[0]
                     genSyno(old_valide, valide = values)
                 elif values.codesyno == 3:
                     if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
@@ -199,7 +201,8 @@ def addPartial(req):
 
 def details(req, id_item):
     if req.user.is_authenticated:
-        item = Nomenclature.objects.using('simagree').select_related('taxon').filter(id = id_item).values(
+        # Récupération de l'objet et de tous ses attributs nécessaires
+        item = Nomenclature.objects.select_related('taxon').filter(id = id_item).values(
             'taxon_id',
             'taxon__fiche',
             'taxon__noms', 
@@ -226,24 +229,31 @@ def details(req, id_item):
             'biblio1',
             'biblio2',
             'biblio3',
-            'moser',
             'date'
             )[0]
+        
+        # Récupération de la classification correspondante au nom valide
+        if item['codesyno'] != 0:
+            genre_cla = Nomenclature.objects.filter(Q(taxon_id = item['taxon_id']) & Q(codesyno = 0)).values('genre')[0]['genre']
+        else:
+            genre_cla = item['genre']
+        cla = Classification.objects.filter(genre__iexact = genre_cla).all()
+
         try:    
             item['taxon__noms'] = item['taxon__noms'].splitlines()
         except:
             pass
         try:
-            others = Nomenclature.objects.using('simagree').filter(Q(taxon = item['taxon_id']) & ~Q(id = id_item)).values('genre', 'espece', 'id', 'codesyno', 'variete', 'autorite', 'forme')
-            return render(req, 'details.html', {'shroom' : item, 'others' : others})
+            others = Nomenclature.objects.filter(Q(taxon = item['taxon_id']) & ~Q(id = id_item)).values('genre', 'espece', 'id', 'codesyno', 'variete', 'autorite', 'forme')
+            return render(req, 'details.html', {'shroom' : item, 'classification' : cla, 'others' : others})
         except:
-            return render(req, 'details.html', {'shroom' : item})
+            return render(req, 'details.html', {'shroom' : item, 'classification' : cla})
     else:
         return redirect(reverse(connexion))
 
 def deleteConfirm(req):
     if req.method == 'POST':
-        item = Nomenclature.objects.using('simagree').get(id = req.POST.get('ident'))
+        item = Nomenclature.objects.get(id = req.POST.get('ident'))
         item.delete()
         return HttpResponseRedirect(req.POST.get('next'))
 
@@ -357,7 +367,7 @@ def modify(req, id):
 def modifyTaxon(req, tax):
     if not req.user.is_authenticated:
         return redirect(reverse(connexion))
-    inst = Identifiants.objects.using('simagree').get(taxon = tax)
+    inst = Identifiants.objects.get(taxon = tax)
     shrooms = Nomenclature.objects.filter(taxon = tax).order_by('codesyno').values(
         'genre',
         'espece',
@@ -386,7 +396,7 @@ def modifyTaxon(req, tax):
 def themes(req):
     if not req.user.is_authenticated:
         return redirect(reverse(connexion))
-    themes_list = Themes.objects.using('simagree').all()
+    themes_list = Themes.objects.all()
     if req.method == 'GET':
         form = AddThemeForm(req.GET or None)
     elif req.method == 'POST':
@@ -398,7 +408,7 @@ def themes(req):
 
 def deleteTheme(req):
     if req.method == 'POST':
-        item = Themes.objects.using('simagree').get(id = req.POST.get('ident'))
+        item = Themes.objects.get(id = req.POST.get('ident'))
         item.delete()
         return redirect(reverse(themes))
 
@@ -414,7 +424,7 @@ def send_file(request, tax, type):
             os.remove('./app/pdf_assets/fiches/' + i)
 
     # Generation du pdf
-    item = Nomenclature.objects.using('simagree').select_related('taxon').filter(Q(taxon = tax) & Q(codesyno = 0)).values(
+    item = Nomenclature.objects.select_related('taxon').filter(Q(taxon = tax) & Q(codesyno = 0)).values(
         'taxon__theme1',
         'taxon__fiche',
         'genre',
@@ -497,8 +507,8 @@ def editList(req, id_liste):
 def showLists(req):
     if not req.user.is_authenticated:
         return redirect(reverse(connexion))
-    listes = ListeRecolte.objects.using('simagree').all().only('lieu', 'date', 'id')
-    lieux = LieuRecolte.objects.using('simagree').all()
+    listes = ListeRecolte.objects.all().only('lieu', 'date', 'id')
+    lieux = LieuRecolte.objects.all()
     modal_display = ''
     if req.method == "POST" and req.POST['action'] == "lieu":
         liste_form = AddListForm()
@@ -532,19 +542,19 @@ def showLists(req):
 def detailsList(req, id_liste):
     if not req.user.is_authenticated:
         return redirect(reverse(connexion))
-    liste = ListeRecolte.objects.using('simagree').get(id = id_liste)
+    liste = ListeRecolte.objects.get(id = id_liste)
     taxons = []
     for i in liste.taxons.all():
         if (int(i.taxon) not in taxons):
             taxons.append(int(i.taxon))
-    items = Nomenclature.objects.using('simagree').select_related('taxon').filter(Q(taxon__in = taxons) & Q(codesyno = 0)).values('genre', 'espece')
+    items = Nomenclature.objects.select_related('taxon').filter(Q(taxon__in = taxons) & Q(codesyno = 0)).values('genre', 'espece')
     return render(req, 'listes.html', {'liste' : liste, 'items' : items})
 
 def modList(req, id_liste):
     if not req.user.is_authenticated:
         return redirect(reverse(connexion))
-    liste = ListeRecolte.objects.using('simagree').get(id = id_liste)
-    all_taxons = Nomenclature.objects.using('simagree').select_related('taxon').only('taxon_id', 'genre', 'espece')
+    liste = ListeRecolte.objects.get(id = id_liste)
+    all_taxons = Nomenclature.objects.select_related('taxon').only('taxon_id', 'genre', 'espece')
     if req.method == "POST":
         form = AddListForm(req.POST, instance = liste)
         if form.is_valid():
@@ -587,7 +597,7 @@ def csvIdent(req):
     # Objet
     c = {
         'header' : csv_header,
-        'data' : Identifiants.objects.using('simagree').all()
+        'data' : Identifiants.objects.all()
     }
     response.write(template.render(c))
     return response
@@ -618,7 +628,7 @@ def csvNomenc(req):
     # Objet
     c = {
         'header' : csv_header,
-        'data' : Nomenclature.objects.using('simagree').all().order_by('taxon_id', 'codesyno')
+        'data' : Nomenclature.objects.all().order_by('taxon_id', 'codesyno')
     }
     response.write(template.render(c))
     return response
@@ -638,11 +648,27 @@ def upload_csv(request):
         if form.cleaned_data['csv_id']:
             up_file_id = request.FILES['csv_id']
             csv_file_id = StringIO(up_file_id.read().decode('UTF-8'))
-            replaceIdentifiants(csv_file_id)
-
-        up_file_nom = request.FILES['csv_nom']
-        csv_file_nom = StringIO(up_file_nom.read().decode('UTF-8'))
-        replaceNomenclature(csv_file_nom)
+            if replaceIdentifiants(csv_file_id):
+                messages.success(request, 'La base Identifiants a bien été mise à jour.')
+            else:
+                messages.error(request, "Une erreur est survenue lors de l'import de la base Identifiants.")
+                return HttpResponseRedirect(reverse("imp-exp"))
+        if form.cleaned_data['csv_classification']:
+            up_file_cla = request.FILES['csv_classification']
+            csv_file_cla = StringIO(up_file_cla.read().decode('UTF-8'))
+            if replaceClassification(csv_file_cla):
+                messages.success(request, 'La base Classification a bien été mise à jour.')
+            else:
+                messages.error(request, "Une erreur est survenue lors de l'import de la base Classification.")
+                return HttpResponseRedirect(reverse("imp-exp"))
+        if form.cleaned_data['csv_nom']:
+            up_file_nom = request.FILES['csv_nom']
+            csv_file_nom = StringIO(up_file_nom.read().decode('UTF-8'))
+            if replaceNomenclature(csv_file_nom):
+                messages.success(request, 'La base Nomenclature a bien été mise à jour.')
+            else:
+                messages.error(request, "Une erreur est survenue lors de l'import de la base Nomenclature.")
+                return HttpResponseRedirect(reverse("imp-exp"))
     return HttpResponseRedirect(reverse("imp-exp"))
 
 def pdf_view(request):

@@ -58,6 +58,18 @@ class Nomenclature(models.Model):
         managed = True
         db_table = 'nomenclature'
 
+class Classification(models.Model):
+    genre = models.TextField()
+    regne = models.TextField(blank = True, null = True)
+    embranchement = models.TextField(blank = True, null = True)
+    classe = models.TextField(blank = True, null = True)
+    ordre = models.TextField(blank = True, null = True)
+    famille = models.TextField(blank = True, null = True)
+
+    class Meta:
+        managed = True
+        db_table = 'classification'
+
 class LieuRecolte(models.Model):
     commune = models.TextField()
     lieu_dit = models.TextField()

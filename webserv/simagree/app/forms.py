@@ -7,18 +7,18 @@ from django.db.models import Q
 ########## RECHERCHE ##########
 
 class SearchForm(forms.Form):
-    nomUsuel = forms.CharField(label = 'Nom', required=False)
-    genre = forms.CharField(label = 'Genre', required=False)
-    espece = forms.CharField(label = 'Espèce', required=False)
+    nomUsuel = forms.CharField(label = 'Nom', required=False, widget=forms.TextInput(attrs={'class' : 'form-control'}))
+    genre = forms.CharField(label = 'Genre', required=False, widget=forms.TextInput(attrs={'class' : 'form-control'}))
+    espece = forms.CharField(label = 'Espèce', required=False, widget=forms.TextInput(attrs={'class' : 'form-control'}))
     opts = [('all','Non renseigné'), ('yes', 'Oui'), ('no', 'Non')]
-    comestible = forms.ChoiceField(label='Comestible', widget=forms.Select, choices=opts)
-    presentSms = forms.BooleanField(label='Afficher uniquement les espèces présentes à la SMS', widget=forms.CheckboxInput, required=False)
-    displaySyno = forms.BooleanField(label='Afficher les synonymes', widget=forms.CheckboxInput, required=False)
-    a_imprimer = forms.BooleanField(label = 'A imprimer', widget=forms.CheckboxInput, required=False)
+    comestible = forms.ChoiceField(label='Comestible', widget=forms.Select(attrs={'class' : 'form-control'}), choices=opts)
+    presentSms = forms.BooleanField(label='Afficher uniquement les espèces présentes à la SMS', widget=forms.CheckboxInput(attrs={'class' : 'form-control'}), required=False)
+    displaySyno = forms.BooleanField(label='Afficher les synonymes', widget=forms.CheckboxInput(attrs={'class' : 'form-control'}), required=False)
+    a_imprimer = forms.BooleanField(label = 'A imprimer', widget=forms.CheckboxInput(attrs={'class' : 'form-control'}), required=False)
 
 class LightSearchForm(forms.Form):
-    genre = forms.CharField(label = 'Genre', required=False)
-    espece = forms.CharField(label = 'Espèce', required=False)
+    genre = forms.CharField(label = 'Genre', required=False, widget=forms.TextInput(attrs={'class' : 'form-control'}))
+    espece = forms.CharField(label = 'Espèce', required=False, widget=forms.TextInput(attrs={'class' : 'form-control'}))
 
 
 ########## AJOUT ##########
@@ -61,8 +61,8 @@ class AddFormId(forms.ModelForm):
             'taxon' : forms.NumberInput(attrs={'class' : 'form-control'}),
             'noms' : forms.TextInput(attrs={'class' : 'form-control'}),
             'fiche' :forms.NumberInput(attrs={'class' : 'form-control'}),
-            'comestible' : forms.TextInput(attrs={'class' : 'form-control'}),
-            'sms' : forms.NullBooleanSelect(attrs={'class' : 'form-control'}),
+            'comestible' : forms.Select(attrs={'class' : 'form-control'}, choices = [(None, 'Inconnu'), ('C', 'Comestible'), ('NC', 'Non Comestible'), ('T', 'Toxique'), ('M', 'Mortel')]),
+            'sms' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
             'a_imprimer' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
             'apparition' : forms.TextInput(attrs={'class' : 'form-control'}),
             'notes' : forms.Textarea(attrs={'class' : 'form-control'}),
@@ -256,14 +256,11 @@ class EditListTaxonsForm(forms.ModelForm):
         for k in self.other_choices:
             self.opts.append((k['taxon'], str(k['taxon']) + ' - ' + k['genre'] + ' ' + k['espece'] + ' ( ' + k['variete'] + ' ' + k['forme'] + ' )'))
         self.initial['selectf'] = self.inits
-        self.fields['selectf'].choices = self.opts
-
-
-    
-
-    
+        self.fields['selectf'].choices = self.opts    
 
 
 class UploadFileForm(forms.Form):
     csv_id = forms.FileField(required = False)
-    csv_nom = forms.FileField()
+    csv_nom = forms.FileField(required = False)
+    csv_classification = forms.FileField(required = False)
+

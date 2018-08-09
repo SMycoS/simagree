@@ -61,6 +61,15 @@
         </ul>
         <p class="fiche">Fiche n° {{ shroom.taxon__fiche }}</p>
         <hr class="my-4">
+        <h2>Classification</h2>
+        {% if classification %}
+        {% for c in classification %}
+            <p>{{ c.regne }} > {{ c.embranchement }} > {{ c.classe }} > {{ c.ordre }} > {{ c.famille }}</p>
+        {% endfor %}
+        {% else %}
+        <p>Aucune information concernant la classification</p>
+        {% endif %}
+        <hr class="my-4">
         <div class="row">
             <div class="col-5">
                 <h2>Synonymes</h2>

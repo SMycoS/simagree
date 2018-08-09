@@ -1,5 +1,6 @@
-import csv
-from .models import Identifiants, Themes, Nomenclature
+import csv, datetime
+from .models import Identifiants, Themes, Nomenclature, Classification
+import traceback
 
 # Identifiants
 def replaceIdentifiants(file):
@@ -19,8 +20,13 @@ def replaceIdentifiants(file):
     objet par objet).
     '''
     elements = []
-    theme_list = [] # liste des thèmes (string)
-    theme_list_instance = [] # liste des thèmes (instance)
+    # dictionnaire des thèmes
+    theme_dict =  Themes.objects.all()
+    theme_dict = {t.theme : t for t in theme_dict}
+    # compteur de thèmes ajoutés
+    added_themes = 0
+    # liste des instances de thèmes ajoutés
+    theme_list_instance = []
 
     # Itération sur les lignes
     for item in rows:
@@ -47,19 +53,19 @@ def replaceIdentifiants(file):
         # Ajout des thèmes dans la liste
 
         for cpt,theme in enumerate([item[9], item[10], item[11], item[12]]):
-            if theme not in theme_list and theme != "":
-                theme_list.append(theme)
-                theme_instance = Themes(theme = theme)
-                theme_list_instance.append(theme_instance)
+            if theme not in theme_dict.keys() and theme != "":
+                theme_dict[theme] = Themes(theme = theme)
+                added_themes += 1
+                theme_list_instance = theme_dict[theme]
             if theme != "":
                 if cpt == 0:
-                    obj.theme1 = theme_instance
+                    obj.theme1 = theme_dict[theme]
                 elif cpt == 1:
-                    obj.theme2 = theme_instance
+                    obj.theme2 = theme_dict[theme]
                 elif cpt == 2:
-                    obj.theme3 = theme_instance
+                    obj.theme3 = theme_dict[theme]
                 elif cpt == 3:
-                    obj.theme4 = theme_instance
+                    obj.theme4 = theme_dict[theme]
             
 
         # Sauvegarde de l'objet dans la liste
@@ -68,10 +74,30 @@ def replaceIdentifiants(file):
     # Fermeture du fichier
     file.close()
 
-    # Création des objets Theme
-    Themes.objects.using('simagree').bulk_create(theme_list_instance)
+    # Création des objets Theme (si la liste des instances n'est pas vide)
+    if added_themes > 0:
+        Themes.objects.using('import-check').bulk_create(theme_list_instance)
+        Themes.objects.bulk_create(theme_list_instance)
+
     # Création des objets Identifiants
-    Identifiants.objects.using('simagree').bulk_create(elements)
+
+    # On commence par essayer l'insertion dans une base secondaire (supposée vide)
+    try:
+        Identifiants.objects.using('import-check').all().delete()
+        Identifiants.objects.using('import-check').bulk_create(elements)
+    except:
+        traceback.print_exc()
+        # On retourne False s'il y a une erreur (gérée ensuite dans les vues)
+        return False
+    else:
+        # Si le test passe, on vide la base secondaire et la base principale, puis on insète dans la base principale
+        # Logiquement, il n'y aura pas d'erreur
+        Identifiants.objects.all().delete()
+        Identifiants.objects.bulk_create(elements)
+        return True
+
+
+        
 
 
 # Nomenclature
@@ -87,7 +113,7 @@ def replaceNomenclature(file):
             continue
         current_taxon = int(item[0])
         if old_taxon != current_taxon:
-            ident_instance = Identifiants.objects.using('simagree').get(taxon = current_taxon)
+            ident_instance = Identifiants.objects.get(taxon = current_taxon)
             old_taxon = current_taxon
         
         obj = Nomenclature(
@@ -101,16 +127,48 @@ def replaceNomenclature(file):
             biblio1 = item[7],
             biblio2 = item[8],
             biblio3 = item[9],
-            moser = item[10]
+            moser = item[10],
+            date = datetime.datetime.strptime(item[11], '%d/%m/%Y').strftime('%Y-%m-%d')
         )
         elements.append(obj)
     file.close()
-    Nomenclature.objects.using('simagree').bulk_create(elements)
 
-# Fonction de test
-def testCsv(filee):
-    rows = csv.reader(filee, delimiter=';')
+    try:
+        Nomenclature.objects.using('import-check').all().delete()
+        Nomenclature.objects.using('import-check').bulk_create(elements)
+    except:
+        traceback.print_exc()
+        return False
+    else:
+        Nomenclature.objects.all().delete()
+        Nomenclature.objects.bulk_create(elements)
+        return True
+
+def replaceClassification(file):
+    rows = csv.reader(file, delimiter=';')
     next(rows, None)
+    old_taxon = 0
+    elements = []
     for item in rows:
-        print(item)
-    filee.close()
+        obj = Classification(
+            regne = item[0],
+            embranchement = item[1],
+            classe = item[2],
+            ordre = item[3],
+            famille = item[4],
+            genre = item[5]
+        )
+        elements.append(obj)
+    
+    try:
+        Classification.objects.using('import-check').all().delete()
+        Classification.objects.using('import-check').bulk_create(elements)
+    except:
+        traceback.print_exc()
+        return False
+    else:
+        Classification.objects.all().delete()
+        Classification.objects.bulk_create(elements)
+        return True
+    
+    
