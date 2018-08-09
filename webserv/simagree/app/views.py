@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect, HttpResponse, FileResponse, Http40
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User, Group
 from django.urls import reverse
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.core import serializers
 from wsgiref.util import FileWrapper
 from django.template import Context, loader
@@ -128,6 +128,10 @@ def add(req):
             if id_form.is_valid() and nom_form.is_valid():
                 # sauvegarde dans la table Identifiants
                 inst = id_form.save(commit = False)
+                # génération automatique du numéro de fiche (max + 1)
+                num_fiche = Identifiants.objects.all().aggregate(Max('fiche'))['fiche__max']
+                num_fiche += 1
+                inst.fiche = num_fiche
                 inst.save(using='simagree')
                 # sauvegarde dans la table Nomenclature
                 values = nom_form.save(commit = False)
@@ -168,7 +172,12 @@ def addPartial(req):
                 values.taxon = inst
                 # vérification du code synonyme
                 if values.codesyno == 0:
-                    Nomenclature.objects.using('simagree').filter(Q(taxon=inst.taxon) & Q(codesyno=0)).update(codesyno=1)
+                    old_valide = Nomenclature.objects.using('simagree').filter(Q(taxon=inst.taxon) & Q(codesyno=0))[0]
+                    genSyno(old_valide, valide = values)
+                elif values.codesyno == 3:
+                    if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
+                        old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
+                        genSyno(old_usuel)
                 values.save(using='simagree')
                 return redirect(reverse(details, kwargs = {'id_item' : values.id}))
         else:
@@ -240,7 +249,23 @@ def deleteConfirm(req):
 
 def deleteTaxon(req):
     if req.method == 'POST':
-        item = Identifiants.objects.using('simagree').get(taxon = req.POST.get('taxon'))
+        item = Identifiants.objects.get(taxon = req.POST.get('taxon'))
+    
+        # Copie dans la db cimetiere de l'ID
+        item_cpy = Identifiants.objects.get(taxon = req.POST.get('taxon'))
+        item_cpy.pk = None
+        item_cpy.save(using='cimetiere')
+
+        # Copie dans la db cimetiere des noms
+        nom = Nomenclature.objects.filter(taxon = req.POST.get('taxon'))
+        # Recharge de l'objet dans la db cimetiere
+        inst_id = Identifiants.objects.using('cimetiere').get(taxon = req.POST.get('taxon'))
+        for i in nom:
+            i.pk = None
+            i.taxon = inst_id
+            i.save(using='cimetiere')
+
+        # Supression de la db principale
         item.delete()
         return HttpResponseRedirect(req.POST.get('next'))
 
@@ -625,3 +650,57 @@ def pdf_view(request):
         return FileResponse(open('app/test1.pdf', 'rb'), content_type='application/pdf')
     except FileNotFoundError:
         raise Http404()
+
+
+########## Cimetière ##########
+
+def cimetiere(req):
+    if not req.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (req.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+
+    items = Nomenclature.objects.using('cimetiere').filter(codesyno = 0).values(
+        'genre',
+        'espece',
+        'autorite',
+        'variete',
+        'forme',
+        'taxon_id'
+    )
+    items_taxons = Nomenclature.objects.using('cimetiere').filter(codesyno = 0).values_list(
+        'taxon_id'
+    )
+    taxons = [i[0] for i in items_taxons]
+
+    items_existants = Identifiants.objects.filter(taxon__in = taxons).values_list('taxon')
+    
+    existants = [i[0] for i in items_existants]
+
+    return render(req, 'cimetiere.html', {
+        'shrooms' : items,
+        'existants' : existants
+    })
+
+def restoreTaxon(req, tax):
+    if not req.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (req.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+    id = Identifiants.objects.using('cimetiere').get(taxon = tax)
+    id_cpy = Identifiants.objects.using('cimetiere').get(taxon = tax)
+    noms = Nomenclature.objects.using('cimetiere').filter(taxon = tax)
+    id_cpy.pk = None
+    id_cpy.save(using='default')
+
+    id_def = Identifiants.objects.get(taxon = tax)
+    for i in noms:
+        i.pk = None
+        i.taxon = id_def
+        i.save(using='default')
+
+    id.delete()
+    return redirect(reverse(cimetiere))
+
+    
+    

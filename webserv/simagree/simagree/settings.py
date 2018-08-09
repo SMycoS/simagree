@@ -92,7 +92,23 @@ DATABASES = {
         'PASSWORD': 'mysecretpassword',
         'HOST': 'localhost',
         'PORT': '5432',
-    }
+    },
+    'cimetiere': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'sms_cim',
+        'USER': 'mycostra',
+        'PASSWORD': 'mysecretpassword',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    'import-check': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'sms_imp',
+        'USER': 'mycostra',
+        'PASSWORD': 'mysecretpassword',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
 }
 
 

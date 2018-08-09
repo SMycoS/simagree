@@ -38,5 +38,7 @@ urlpatterns = [
     url(r'^export/identifiants/$', views.csvIdent, name = 'export-ident'),
     url(r'^export/nomenclature/$', views.csvNomenc, name = 'export-nomenc'),
     url(r'^import_export/$', views.upload_csv, name = 'imp-exp'),
-    url(r'^pdfview/$', views.pdf_view, name = 'pdf-view')
+    url(r'^pdfview/$', views.pdf_view, name = 'pdf-view'),
+    url(r'^deleted/$', views.cimetiere, name = 'cimetiere'),
+    url(r'^restore/(?P<tax>[0-9]+)/$', views.restoreTaxon, name = 'restore-tax'),
 ]

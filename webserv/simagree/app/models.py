@@ -3,6 +3,7 @@ from django.db import models
 
 class Themes(models.Model):
     theme = models.TextField(unique = True)
+    titre = models.TextField(blank = True, null = True)
 
     def __unicode__(self):
         return self.theme
@@ -71,11 +72,21 @@ class LieuRecolte(models.Model):
     class Meta:
         managed = True
         db_table = 'lieurec'
+    
+class ObjetRecolte(models.Model):
+    taxon = models.ForeignKey(Identifiants, on_delete = models.CASCADE)
+    recolteur = models.TextField(blank = True, null = True)
+    determinateur = models.TextField(blank = True, null = True)
+    num_herbier = models.IntegerField(blank = True, null = True) 
+
+    class Meta:
+        managed = True
+        db_table = 'objrec'
 
 class ListeRecolte(models.Model):
     date = models.DateField()
     lieu = models.ForeignKey(LieuRecolte, on_delete=models.SET_NULL, null=True, blank=True)
-    taxons = models.ManyToManyField(Identifiants)
+    taxons = models.ManyToManyField(ObjetRecolte)
 
     class Meta:
         managed = True

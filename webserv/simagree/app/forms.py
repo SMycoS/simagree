@@ -66,10 +66,14 @@ class AddFormId(forms.ModelForm):
             'a_imprimer' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
             'apparition' : forms.TextInput(attrs={'class' : 'form-control'}),
             'notes' : forms.Textarea(attrs={'class' : 'form-control'}),
-            'ecologie' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'ecologie' : forms.Textarea(attrs={'class' : 'form-control'}),
             'icono1' : forms.TextInput(attrs={'class' : 'form-control'}),
             'icono2' : forms.TextInput(attrs={'class' : 'form-control'}),
             'icono3' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'theme1' : forms.Select(attrs={'class' : 'form-control'}),
+            'theme2' : forms.Select(attrs={'class' : 'form-control'}),
+            'theme3' : forms.Select(attrs={'class' : 'form-control'}),
+            'theme4' : forms.Select(attrs={'class' : 'form-control'}),
         }
 
 class AddFormPartial(forms.ModelForm):
