@@ -1,5 +1,4 @@
 {% extends 'partial/base.html' %}
-
 {% block content %}
 <section id="themesList">
     <div class="container">
@@ -13,15 +12,30 @@
             <tbody>
                 {% for theme in themes_list %}
                 <tr>
-                    <td>{{ theme.theme }}</td>
+                    <td>{{ theme.theme }}
+
+                        <form action="" method="POST" id="titleform-{{theme.id}}">
+                            {% csrf_token %}
+                            <input type="hidden" name="ident" value="{{ theme.id }}">
+                            <input type="text" name="titre" id="titre" value="{{ theme.titre }}">
+                        </form>
+                    </td>
                     <td>
-                        <form action="{% url 'themes_del' %}" method="post">
+                        <button type="submit" class="btn btn-secondary" form="titleform-{{theme.id}}" name="action" value="edit">Mise à jour du titre</button>
+                        <form action="{% url 'themes_del' %}" method="post" id="delThemeForm-{{theme.id}}">
                             {% csrf_token %}
                             <input type="hidden" name="ident" value="{{ theme.id }}">
                             <button type="submit" class="btn btn-danger">Supprimer</button>
                         </form>
                     </td>
                 </tr>
+                <script>
+                        $(document).ready(() => {
+                            $('#delThemeForm-{{theme.id}}').on('submit', (e) => {
+                                return confirm("Voulez-vous vraiment supprimer le theme {{theme.theme}} ({{theme.titre}}) ?");
+                            });
+                        });
+                    </script>
                 {% endfor %}
             </tbody>
         </table>
@@ -30,9 +44,10 @@
             <div class="form-group mx-sm-3 mb-2">
                 {{ form }}
             </div>
-            <button type="submit" class="btn btn-primary mb-2">Ajouter</button>
+            <button type="submit" class="btn btn-primary mb-2" name="action" value="add">Ajouter</button>
         </form>
     </div>
+    
 </section>
 
 {% endblock %}

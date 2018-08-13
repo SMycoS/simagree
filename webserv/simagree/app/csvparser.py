@@ -56,7 +56,7 @@ def replaceIdentifiants(file):
             if theme not in theme_dict.keys() and theme != "":
                 theme_dict[theme] = Themes(theme = theme)
                 added_themes += 1
-                theme_list_instance = theme_dict[theme]
+                theme_list_instance.append(theme_dict[theme])
             if theme != "":
                 if cpt == 0:
                     obj.theme1 = theme_dict[theme]
@@ -76,6 +76,7 @@ def replaceIdentifiants(file):
 
     # Création des objets Theme (si la liste des instances n'est pas vide)
     if added_themes > 0:
+        Themes.objects.using('import-check').all().delete()
         Themes.objects.using('import-check').bulk_create(theme_list_instance)
         Themes.objects.bulk_create(theme_list_instance)
 
@@ -86,7 +87,6 @@ def replaceIdentifiants(file):
         Identifiants.objects.using('import-check').all().delete()
         Identifiants.objects.using('import-check').bulk_create(elements)
     except:
-        traceback.print_exc()
         # On retourne False s'il y a une erreur (gérée ensuite dans les vues)
         return False
     else:

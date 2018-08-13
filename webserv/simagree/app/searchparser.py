@@ -12,7 +12,7 @@ def dbRequest(data, size):
     limit = size[0] * size[1]
 
     # préparation de la requête
-    query = Nomenclature.objects.using('simagree').select_related('taxon')
+    query = Nomenclature.objects.select_related('taxon')
 
     # agrégation de filtres
 
@@ -60,7 +60,10 @@ def dbRequest(data, size):
 
 def light_dbRequest(data):
     # préparation de la requête
-    query = Nomenclature.objects.using('simagree').select_related('taxon')
+    query = Nomenclature.objects.select_related('taxon')
+    
+    if not(data['genre']) and not(data['espece']):
+        return []
     
     # filtres sur les champs texte
     if (data['genre']):
@@ -84,7 +87,7 @@ def light_dbRequest_bis(data, size):
     offset = (size[1] - 1) * size[0]
     limit = size[0] * size[1]
     # préparation de la requête
-    query = Nomenclature.objects.using('simagree').select_related('taxon')
+    query = Nomenclature.objects.select_related('taxon')
     
     # filtres sur les champs texte
     if (data['genre']):

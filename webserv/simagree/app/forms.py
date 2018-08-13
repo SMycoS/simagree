@@ -44,7 +44,7 @@ class AddFormId(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AddFormId, self).__init__(*args, **kwargs)
-        self.list = Themes.objects.using('simagree').all()
+        self.list = Themes.objects.all()
         self.fields['theme1'].queryset = self.list
         self.fields['theme1'].required = False
         self.fields['theme2'].queryset = self.list
@@ -53,6 +53,13 @@ class AddFormId(forms.ModelForm):
         self.fields['theme3'].required = False
         self.fields['theme4'].queryset = self.list
         self.fields['theme4'].required = False
+    
+    def clean_comestible(self):
+        form_com = self.cleaned_data.get("comestible")
+        form_sms = self.cleaned_data.get("sms")
+        if form_sms and (form_com == ""):
+            raise forms.ValidationError(u"La comestibilité est obligatoire si le taxon est présent à la SMS")
+        return form_com
 
     class Meta:
         model = Identifiants
@@ -61,8 +68,8 @@ class AddFormId(forms.ModelForm):
             'taxon' : forms.NumberInput(attrs={'class' : 'form-control'}),
             'noms' : forms.TextInput(attrs={'class' : 'form-control'}),
             'fiche' :forms.NumberInput(attrs={'class' : 'form-control'}),
-            'comestible' : forms.Select(attrs={'class' : 'form-control'}, choices = [(None, 'Inconnu'), ('C', 'Comestible'), ('NC', 'Non Comestible'), ('T', 'Toxique'), ('M', 'Mortel')]),
             'sms' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
+            'comestible' : forms.Select(attrs={'class' : 'form-control'}, choices = [(None, 'Inconnu'), ('C', 'Comestible'), ('NC', 'Non Comestible'), ('T', 'Toxique'), ('MO', 'Mortel')]),
             'a_imprimer' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
             'apparition' : forms.TextInput(attrs={'class' : 'form-control'}),
             'notes' : forms.Textarea(attrs={'class' : 'form-control'}),
@@ -82,7 +89,7 @@ class AddFormPartial(forms.ModelForm):
     def clean_tax(self):
         form_tax = self.cleaned_data.get("tax")
 
-        existing = Nomenclature.objects.using('simagree').filter(
+        existing = Nomenclature.objects.filter(
                        taxon_id=form_tax
                    ).exists()
         if not existing:
@@ -93,7 +100,7 @@ class AddFormPartial(forms.ModelForm):
         fields = '__all__'
         exclude = ('taxon'),
         widgets = {
-            'codesyno' : forms.NumberInput(attrs={'class' : 'form-control'}),
+            'codesyno' : forms.Select(attrs={'class' : 'form-control'}, choices = [('0', 'VALIDE'), ('1', 'SYN'), ('3', 'SYN USUEL')]),
             'genre' : forms.TextInput(attrs={'class' : 'form-control'}),
             'espece' : forms.TextInput(attrs={'class' : 'form-control'}),
             'variete' : forms.TextInput(attrs={'class' : 'form-control'}),
@@ -133,7 +140,7 @@ class ModFormTax(forms.ModelForm):
         super(ModFormTax, self).__init__(*args, **kwargs)
         self.fields['taxon'].disabled = True
         self.fields['fiche'].disabled = True
-        self.list = Themes.objects.using('simagree').all()
+        self.list = Themes.objects.all()
         self.fields['theme1'].queryset = self.list
         self.fields['theme1'].required = False
         self.fields['theme2'].queryset = self.list
@@ -142,6 +149,13 @@ class ModFormTax(forms.ModelForm):
         self.fields['theme3'].required = False
         self.fields['theme4'].queryset = self.list
         self.fields['theme4'].required = False
+    
+    def clean_comestible(self):
+        form_com = self.cleaned_data.get("comestible")
+        form_sms = self.cleaned_data.get("sms")
+        if form_sms and (form_com == ""):
+            raise forms.ValidationError(u"La comestibilité est obligatoire si le taxon est présent à la SMS")
+        return form_com
 
     class Meta:
         model = Identifiants
@@ -150,8 +164,8 @@ class ModFormTax(forms.ModelForm):
             'taxon' : forms.NumberInput(attrs={'class' : 'form-control'}),
             'noms' : forms.TextInput(attrs={'class' : 'form-control'}),
             'fiche' :forms.NumberInput(attrs={'class' : 'form-control'}),
-            'comestible' : forms.TextInput(attrs={'class' : 'form-control'}),
-            'sms' : forms.NullBooleanSelect(attrs={'class' : 'form-control'}),
+            'sms' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
+            'comestible' : forms.Select(attrs={'class' : 'form-control'}, choices = [(None, 'Inconnu'), ('C', 'Comestible'), ('NC', 'Non Comestible'), ('T', 'Toxique'), ('MO', 'Mortel')]),
             'a_imprimer' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
             'apparition' : forms.TextInput(attrs={'class' : 'form-control'}),
             'notes' : forms.Textarea(attrs={'class' : 'form-control'}),
@@ -178,7 +192,7 @@ class AddThemeForm(forms.ModelForm):
     def clean_theme(self):
         form_theme = self.cleaned_data.get("theme")
 
-        existing = Themes.objects.using('simagree').filter(
+        existing = Themes.objects.filter(
                        theme=form_theme
                    ).exists()
         if existing:
@@ -187,7 +201,7 @@ class AddThemeForm(forms.ModelForm):
 
     class Meta:
         model = Themes
-        fields = '__all__'
+        fields = ['theme']
         widgets = {'theme' : forms.TextInput(attrs={'class' : 'form-control'})}
 
 

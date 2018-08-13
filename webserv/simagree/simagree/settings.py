@@ -79,33 +79,25 @@ WSGI_APPLICATION = 'simagree.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'sms_test',
-        'USER': 'mycostra',
-        'PASSWORD': 'mysecretpassword',
+        'NAME': 'simagree',
+        'USER': 'simagree_admin',
+        'PASSWORD': 'simagree2018',
         'HOST': 'localhost',
         'PORT': '5432',
         },
-    'simagree': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'sms_test',
-        'USER': 'mycostra',
-        'PASSWORD': 'mysecretpassword',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    },
     'cimetiere': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'sms_cim',
-        'USER': 'mycostra',
-        'PASSWORD': 'mysecretpassword',
+        'NAME': 'simagree_cimetiere',
+        'USER': 'simagree_admin',
+        'PASSWORD': 'simagree2018',
         'HOST': 'localhost',
         'PORT': '5432',
     },
     'import-check': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'sms_imp',
-        'USER': 'mycostra',
-        'PASSWORD': 'mysecretpassword',
+        'NAME': 'simagree_import',
+        'USER': 'simagree_admin',
+        'PASSWORD': 'simagree2018',
         'HOST': 'localhost',
         'PORT': '5432',
     },
@@ -152,3 +144,6 @@ USE_TZ = True
 STATIC_URL = '/app/static/'
 INTERNAL_IPS = ['127.0.0.1']
 #SESSION_COOKIE_AGE = 900
+#SESSION_SAVE_EVERY_REQUEST = True
+
+

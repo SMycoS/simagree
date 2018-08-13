@@ -186,7 +186,10 @@
               <label for="prevTax">Insérer après</label>
               <select name="prevTax" id="prevTaxSelect" class="chosen-select">
                 {% for item in results %}
-                <option value="{{ item.taxon_id }}">{{ item.taxon_id }} - {{ item.genre }} {{ item.espece }}</option>
+                <option value="{{ item.taxon_id }}">{{ item.taxon_id }} - {{ item.genre }} {{ item.espece }}
+                  {% if item.variete and item.variete.strip %} var. {{ item.variete }}{% endif %}
+                  {% if item.forme and item.forme.strip %} f. {{ item.forme }}{% endif %}
+                </option>
                 {% endfor %}
               </select>
               <button id="taxBtn" class="btn btn-primary">Go</button>

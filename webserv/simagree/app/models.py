@@ -19,8 +19,8 @@ class Identifiants(models.Model):
     taxon = models.IntegerField(unique=True)
     noms = models.TextField(blank=True, null=True)
     fiche = models.IntegerField(blank=True, null=True)
-    comestible = models.TextField(blank=True, null=True)
     sms = models.NullBooleanField()
+    comestible = models.TextField(blank=True, null=True)
     a_imprimer = models.NullBooleanField()
     lieu = models.TextField(blank=True, null=True)
     apparition = models.TextField(blank=True, null=True)
@@ -52,7 +52,7 @@ class Nomenclature(models.Model):
     biblio2 = models.TextField(blank=True, null=True)
     biblio3 = models.TextField(blank=True, null=True)
     moser = models.TextField(blank=True, null=True)
-    date = models.DateField(auto_now = True)
+    date = models.DateField(blank = True, null = True)
 
     class Meta:
         managed = True

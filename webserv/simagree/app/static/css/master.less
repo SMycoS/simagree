@@ -1,11 +1,38 @@
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+.wrapper {
+    min-height: 100%;
+    margin-bottom: -50px;
+}
+footer, .push {
+    height: 50px;
+}
+.footer {
+    display: flex;
+    flex-flow: row wrap;
+    text-align: center;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    p {
+        font-size: 0.8em;
+        flex: 1 0 auto;
+        margin: 0;
+    }
+}
+
 .presentation {
+    margin-top: 10vh;
     .row {
         margin-top: 20px;
+        margin-bottom: 10px;
     }
+    text-align: center;
 
-    h1 {
-        text-align: center;
-    }
 }
 
 .searchForm {
@@ -73,6 +100,15 @@
     margin-top: 15px;
 }
 
+.fiches{
+    text-align: center;
+    a {
+        display: block;
+        width: 30vw;
+        margin: 5px auto 5px auto;
+    }
+} 
+
 #sideBar {
     background-color: lightgrey;
     height: 100vh;
@@ -93,15 +129,21 @@
         border-radius: 10px;
         max-width: 100vw;
         overflow: scroll;
-        tr {
+        tr{
             &:nth-child(even){
                 background-color: whitesmoke;
+                input {
+                    background-color: whitesmoke;
+                }
             }
     
             &:nth-child(odd){
                 background-color: lightgrey;
+                input {
+                    background-color: lightgrey;
+                }
             }
-        } 
+        }
 
     }
     th {
@@ -128,6 +170,9 @@
         display:table;
         width:100%;
         table-layout:fixed;/* even columns width , fix width of table too*/
+    }
+    input {
+        text-align: center;
     }
 
 }

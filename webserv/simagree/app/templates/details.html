@@ -148,9 +148,21 @@
         </div>
       </div>
       {% if request.user|has_group:"Administrateurs" %}
-      <div class="container">
-          <a href="{% url 'sendfile' tax=shroom.taxon_id type="classique" %}" class="btn btn-warning">Générer une fiche classique</a>
-          <a href="{% url 'sendfile' tax=shroom.taxon_id type="theme" %}" class="btn btn-secondary">Générer une fiche thématique</a>
+      <div class="container fiches">
+        <h1>Génération de fiches</h1>
+        <a href="{% url 'sendfile' tax=shroom.taxon_id type_fiche="classique" %}" class="btn btn-warning">Générer une fiche classique</a>
+        {% if shroom.taxon__theme1 %}
+        <a href="{% url 'sendfile' tax=shroom.taxon_id type_fiche=shroom.taxon__theme1 %}" class="btn btn-secondary">Générer une fiche thématique {{shroom.taxon__theme1}}</a>
+        {% endif %}
+        {% if shroom.taxon__theme2 %}
+        <a href="{% url 'sendfile' tax=shroom.taxon_id type_fiche=shroom.taxon__theme2 %}" class="btn btn-secondary">Générer une fiche thématique {{shroom.taxon__theme2}}</a>
+        {% endif %}
+        {% if shroom.taxon__theme3 %}
+        <a href="{% url 'sendfile' tax=shroom.taxon_id type_fiche=shroom.taxon__theme3 %}" class="btn btn-secondary">Générer une fiche thématique {{shroom.taxon__theme3}}</a>
+        {% endif %}
+        {% if shroom.taxon__theme4 %}
+        <a href="{% url 'sendfile' tax=shroom.taxon_id type_fiche=shroom.taxon__theme4 %}" class="btn btn-secondary">Générer une fiche thématique {{shroom.taxon__theme4}}</a>
+        {% endif %}
       </div>
       {% endif %}
 {% endblock %}

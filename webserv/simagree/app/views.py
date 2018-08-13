@@ -8,6 +8,7 @@ from django.core import serializers
 from wsgiref.util import FileWrapper
 from django.template import Context, loader
 from django.contrib import messages
+from django.conf import settings
 
 import os
 import datetime
@@ -55,8 +56,8 @@ def genSyno(instance, valide = None):
 
 ########## Vues pour la connexion ##########
 
-def accueil(req):
-    return render(req, 'home.html')
+def accueil(request):
+    return render(request, 'home.html')
 
 def connexion(request):
     error = False
@@ -86,20 +87,20 @@ def deconnexion(request):
 ########## Vues générales ##########
 
 
-def search(req):
-    if not req.user.is_authenticated:
+def search(request):
+    if not request.user.is_authenticated:
         return redirect(reverse(connexion))
     # if this is a POST request we need to process the form data
-    if req.method == 'GET':
+    if request.method == 'GET':
         # create a form instance and populate it with data from the request:
-        form = SearchForm(req.GET or None, auto_id=True)
+        form = SearchForm(request.GET or None, auto_id=True)
         # check whether it's valid:
         if form.is_valid():
             # process the data in form.cleaned_data as required
             # ...
             # redirect to a new URL:
-            items = dbRequest(form.cleaned_data, (req_size, int(req.GET['page'])))
-            return render(req, 'search.html', {
+            items = dbRequest(form.cleaned_data, (req_size, int(request.GET['page'])))
+            return render(request, 'search.html', {
                 'form' : form,
                 'shrooms' : items[1],
                 'total' : items[0],
@@ -109,167 +110,174 @@ def search(req):
     else:
         form = SearchForm(auto_id=True)
 
-    return render(req, 'search.html',{'form' : form})
+    return render(request, 'search.html',{'form' : form})
 
 
 ########## Vues pour la gestion des champignons ##########
 
-def add(req):
-    if req.user.is_authenticated:
-        # récupération de l'ensemble des taxons
-        # première requête
-        if req.method == 'GET':
-            id_form = AddFormId(req.GET or None)
-            nom_form = AddFormNom(req.GET or None)
-            search_form = LightSearchForm()
-        # après envoi du formulaire
-        elif req.method == 'POST' and req.POST['action'] == "add":
-            id_form = AddFormId(req.POST)
-            nom_form = AddFormNom(req.POST)
-            search_form = LightSearchForm(req.POST)
-            if id_form.is_valid() and nom_form.is_valid():
-                # sauvegarde dans la table Identifiants
-                inst = id_form.save(commit = False)
-                # génération automatique du numéro de fiche (max + 1)
-                num_fiche = Identifiants.objects.all().aggregate(Max('fiche'))['fiche__max']
-                num_fiche += 1
-                inst.fiche = num_fiche
-                inst.save(using='simagree')
-                # sauvegarde dans la table Nomenclature
-                values = nom_form.save(commit = False)
-                values.taxon = inst
-                values.codesyno = 0
-                values.save(using='simagree')
-                return redirect(reverse(details, kwargs = {'id_item' : values.id}))
-        # Recherche
-        else:
-            id_form = AddFormId()
-            nom_form = AddFormNom()
-            search_form = LightSearchForm(req.POST)
-            if search_form.is_valid():
-                items = light_dbRequest(search_form.cleaned_data)
-                return render(req, 'add.html', {
-                    'form' : id_form, 
-                    'form2' : nom_form,
-                    'searchform' : search_form, 
-                    'results':items
-                    })
-        return render(req, 'add.html', {'form' : id_form, 'form2' : nom_form,'searchform' : search_form})
-    else:
+def add(request):
+    if not request.user.is_authenticated:
         return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+    # récupération de l'ensemble des taxons
+    # première requête
+    if request.method == 'GET':
+        id_form = AddFormId(request.GET or None)
+        nom_form = AddFormNom(request.GET or None)
+        search_form = LightSearchForm()
+    # après envoi du formulaire
+    elif request.method == 'POST' and request.POST['action'] == "add":
+        id_form = AddFormId(request.POST)
+        nom_form = AddFormNom(request.POST)
+        search_form = LightSearchForm(request.POST)
+        if id_form.is_valid() and nom_form.is_valid():
+            # sauvegarde dans la table Identifiants
+            inst = id_form.save(commit = False)
+            # génération automatique du numéro de fiche (max + 1)
+            num_fiche = Identifiants.objects.all().aggregate(Max('fiche'))['fiche__max']
+            num_fiche += 1
+            inst.fiche = num_fiche
+            inst.save()
+            # sauvegarde dans la table Nomenclature
+            values = nom_form.save(commit = False)
+            values.taxon = inst
+            values.codesyno = 0
+            values.save()
+            return redirect(reverse(details, kwargs = {'id_item' : values.id}))
+    # Recherche
+    else:
+        id_form = AddFormId()
+        nom_form = AddFormNom()
+        search_form = LightSearchForm(request.POST)
+        if search_form.is_valid():
+            items = light_dbRequest(search_form.cleaned_data)
+            return render(request, 'add.html', {
+                'form' : id_form, 
+                'form2' : nom_form,
+                'searchform' : search_form, 
+                'results':items
+                })
+    return render(request, 'add.html', {'form' : id_form, 'form2' : nom_form,'searchform' : search_form})
 
 
-def addPartial(req):
-    if req.user.is_authenticated:
-        if req.method == 'GET':
-            nom_form = AddFormPartial(req.GET or None)
-            search_form = LightSearchForm()
-        elif req.method == 'POST' and req.POST['action'] == "add":
-            nom_form = AddFormPartial(req.POST)
-            search_form = LightSearchForm(req.POST)
-            if nom_form.is_valid():
-                id = nom_form.cleaned_data['tax']
-                inst = Identifiants.objects.get(taxon = id)
-                values = nom_form.save(commit = False)
-                values.taxon = inst
-                # vérification du code synonyme
-                if values.codesyno == 0:
-                    old_valide = Nomenclature.objects.filter(Q(taxon=inst.taxon) & Q(codesyno=0))[0]
-                    genSyno(old_valide, valide = values)
-                elif values.codesyno == 3:
-                    if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
-                        old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
-                        genSyno(old_usuel)
-                values.save(using='simagree')
-                return redirect(reverse(details, kwargs = {'id_item' : values.id}))
-        else:
-            nom_form = AddFormPartial()
-            search_form = LightSearchForm(req.POST)
-            if search_form.is_valid():
-                items = light_dbRequest(search_form.cleaned_data)
-                return render(req, 'add_partial.html', {
-                    'form' : nom_form,
-                    'searchform' : search_form, 
-                    'results':items
-                    })
-        
-        return render(req, 'add_partial.html', {'form' : nom_form, 'searchform' : search_form})
+def addPartial(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+    if request.method == 'GET':
+        nom_form = AddFormPartial(request.GET or None)
+        search_form = LightSearchForm()
+    elif request.method == 'POST' and request.POST['action'] == "add":
+        nom_form = AddFormPartial(request.POST)
+        search_form = LightSearchForm(request.POST)
+        if nom_form.is_valid():
+            id = nom_form.cleaned_data['tax']
+            inst = Identifiants.objects.get(taxon = id)
+            values = nom_form.save(commit = False)
+            values.taxon = inst
+            # vérification du code synonyme
+            if values.codesyno == 0:
+                old_valide = Nomenclature.objects.filter(Q(taxon=inst.taxon) & Q(codesyno=0))[0]
+                genSyno(old_valide, valide = values)
+            elif values.codesyno == 3:
+                if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
+                    old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
+                    genSyno(old_usuel)
+            values.save()
+            return redirect(reverse(details, kwargs = {'id_item' : values.id}))
+    else:
+        nom_form = AddFormPartial()
+        search_form = LightSearchForm(request.POST)
+        if search_form.is_valid():
+            items = light_dbRequest(search_form.cleaned_data)
+            return render(request, 'add_partial.html', {
+                'form' : nom_form,
+                'searchform' : search_form, 
+                'results':items
+                })
     
+    return render(request, 'add_partial.html', {'form' : nom_form, 'searchform' : search_form})
+
+def details(request, id_item):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    # Récupération de l'objet et de tous ses attributs nécessaires
+    item = Nomenclature.objects.select_related('taxon').filter(id = id_item).values(
+        'taxon_id',
+        'taxon__fiche',
+        'taxon__noms', 
+        'taxon__comestible', 
+        'taxon__sms',
+        'taxon__theme1',
+        'taxon__theme2',
+        'taxon__theme3',
+        'taxon__theme4',
+        'taxon__fiche',
+        'taxon__apparition',
+        'taxon__notes',
+        'taxon__ecologie',
+        'taxon__icono1',
+        'taxon__icono2',
+        'taxon__icono3',
+        'taxon__num_herbier',
+        'codesyno', 
+        'genre', 
+        'espece', 
+        'variete', 
+        'forme',
+        'autorite',
+        'biblio1',
+        'biblio2',
+        'biblio3',
+        'date'
+        )[0]
     
+    # Récupération de la classification correspondante au nom valide
+    if item['codesyno'] != 0:
+        genre_cla = Nomenclature.objects.filter(Q(taxon_id = item['taxon_id']) & Q(codesyno = 0)).values('genre')[0]['genre']
     else:
+        genre_cla = item['genre']
+    cla = Classification.objects.filter(genre__iexact = genre_cla).all()
+
+    try:    
+        item['taxon__noms'] = item['taxon__noms'].splitlines()
+    except:
+        pass
+    try:
+        others = Nomenclature.objects.filter(Q(taxon = item['taxon_id']) & ~Q(id = id_item)).values('genre', 'espece', 'id', 'codesyno', 'variete', 'autorite', 'forme')
+        return render(request, 'details.html', {'shroom' : item, 'classification' : cla, 'others' : others})
+    except:
+        return render(request, 'details.html', {'shroom' : item, 'classification' : cla})
+
+def deleteConfirm(request):
+    if not request.user.is_authenticated:
         return redirect(reverse(connexion))
-
-def details(req, id_item):
-    if req.user.is_authenticated:
-        # Récupération de l'objet et de tous ses attributs nécessaires
-        item = Nomenclature.objects.select_related('taxon').filter(id = id_item).values(
-            'taxon_id',
-            'taxon__fiche',
-            'taxon__noms', 
-            'taxon__comestible', 
-            'taxon__sms',
-            'taxon__theme1',
-            'taxon__theme2',
-            'taxon__theme3',
-            'taxon__theme4',
-            'taxon__fiche',
-            'taxon__apparition',
-            'taxon__notes',
-            'taxon__ecologie',
-            'taxon__icono1',
-            'taxon__icono2',
-            'taxon__icono3',
-            'taxon__num_herbier',
-            'codesyno', 
-            'genre', 
-            'espece', 
-            'variete', 
-            'forme',
-            'autorite',
-            'biblio1',
-            'biblio2',
-            'biblio3',
-            'date'
-            )[0]
-        
-        # Récupération de la classification correspondante au nom valide
-        if item['codesyno'] != 0:
-            genre_cla = Nomenclature.objects.filter(Q(taxon_id = item['taxon_id']) & Q(codesyno = 0)).values('genre')[0]['genre']
-        else:
-            genre_cla = item['genre']
-        cla = Classification.objects.filter(genre__iexact = genre_cla).all()
-
-        try:    
-            item['taxon__noms'] = item['taxon__noms'].splitlines()
-        except:
-            pass
-        try:
-            others = Nomenclature.objects.filter(Q(taxon = item['taxon_id']) & ~Q(id = id_item)).values('genre', 'espece', 'id', 'codesyno', 'variete', 'autorite', 'forme')
-            return render(req, 'details.html', {'shroom' : item, 'classification' : cla, 'others' : others})
-        except:
-            return render(req, 'details.html', {'shroom' : item, 'classification' : cla})
-    else:
-        return redirect(reverse(connexion))
-
-def deleteConfirm(req):
-    if req.method == 'POST':
-        item = Nomenclature.objects.get(id = req.POST.get('ident'))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+    if request.method == 'POST':
+        item = Nomenclature.objects.get(id = request.POST.get('ident'))
         item.delete()
-        return HttpResponseRedirect(req.POST.get('next'))
+        return HttpResponseRedirect(request.POST.get('next'))
 
-def deleteTaxon(req):
-    if req.method == 'POST':
-        item = Identifiants.objects.get(taxon = req.POST.get('taxon'))
+def deleteTaxon(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+    if request.method == 'POST':
+        item = Identifiants.objects.get(taxon = request.POST.get('taxon'))
     
         # Copie dans la db cimetiere de l'ID
-        item_cpy = Identifiants.objects.get(taxon = req.POST.get('taxon'))
+        item_cpy = Identifiants.objects.get(taxon = request.POST.get('taxon'))
         item_cpy.pk = None
         item_cpy.save(using='cimetiere')
 
         # Copie dans la db cimetiere des noms
-        nom = Nomenclature.objects.filter(taxon = req.POST.get('taxon'))
+        nom = Nomenclature.objects.filter(taxon = request.POST.get('taxon'))
         # Recharge de l'objet dans la db cimetiere
-        inst_id = Identifiants.objects.using('cimetiere').get(taxon = req.POST.get('taxon'))
+        inst_id = Identifiants.objects.using('cimetiere').get(taxon = request.POST.get('taxon'))
         for i in nom:
             i.pk = None
             i.taxon = inst_id
@@ -277,96 +285,100 @@ def deleteTaxon(req):
 
         # Supression de la db principale
         item.delete()
-        return HttpResponseRedirect(req.POST.get('next'))
+        return HttpResponseRedirect(request.POST.get('next'))
 
-def modify(req, id):
-    if req.user.is_authenticated:
-        inst_nom = Nomenclature.objects.get(id = id)
-        old_code = inst_nom.codesyno
-        others = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon)).order_by('codesyno').values(
-            'genre',
-            'espece',
-            'variete',
-            'forme',
-            'codesyno',
-            'autorite',
-            'id'
-        )
-        others_json = serializers.serialize("json", Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & ~Q(codesyno = 0)))
-        # première requête
-        if req.method == 'GET':
-            nom_form = ModForm(req.GET or None, instance=inst_nom)
-        # après envoi du formulaire
-        elif req.method == 'POST':
-            nom_form = ModForm(req.POST, instance = inst_nom)
-            if nom_form.is_valid():
-                # sauvegarde dans la table Nomenclature
-                
-                values = nom_form.save(commit = False)
-                values.codesyno = int(values.codesyno)
-                # vérification du code synonyme (si il y a eu changement)
-                if (values.codesyno != old_code):
-                    # Cas : anciennement valide (passage VALIDE -> SYN)
-                    if old_code == 0:
-                        # On récupère l'id du nouveau valide
-                        new_valide = int(req.POST['changeCode'])
-                        # Mise à jour dans la BDD
-                        valide = Nomenclature.objects.filter(id = new_valide)
-                        valide.update(codesyno = 0)
-                        # si un synonyme était déjà SYN USUEL, on le change en SYN
-                        if values.codesyno == 3:
-                            if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
-                                old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
-                                genSyno(old_usuel)
-                        synonymes = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno__in = [1,2]))
-                        for s in synonymes:
-                            gensyno(s, valide = valide[0])
-                    # Cas : synonyme
-                    else:
-                        # passage SYN -> VALIDE
-                        if values.codesyno == 0:
-                            old_valide = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 0))
-                            # Etat dans lequel mettre l'ancien VALIDE
-                            old_state = int(req.POST['changeCode'])
-                            # SYN (classique)
-                            if old_state == 1:
-                                genSyno(old_valide[0], valide = values) # mise à jour automatique avec le code 1 ou 2
-                            # SYN USUEL
-                            else:
-                                # si un synonyme était déjà SYN USUEL, on le change en SYN
-                                if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
-                                    old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
-                                    genSyno(old_usuel, valide = values)
-
-                                # changement de l'ancien VALIDE en SYN USUEL
-                                old_valide.update(codesyno = 3)
-                            # On met à jour de la des synonymes
-                            synonymes = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno__in = [1,2]))
-                            for s in synonymes:
-                                genSyno(s, valide = values)
-                        # passage SYN -> SYN USUEL
+def modify(request, id):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+    inst_nom = Nomenclature.objects.get(id = id)
+    old_code = inst_nom.codesyno
+    others = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon)).order_by('codesyno').values(
+        'genre',
+        'espece',
+        'variete',
+        'forme',
+        'codesyno',
+        'autorite',
+        'id'
+    )
+    others_json = serializers.serialize("json", Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & ~Q(codesyno = 0)))
+    # première requête
+    if request.method == 'GET':
+        nom_form = ModForm(request.GET or None, instance=inst_nom)
+    # après envoi du formulaire
+    elif request.method == 'POST':
+        nom_form = ModForm(request.POST, instance = inst_nom)
+        if nom_form.is_valid():
+            # sauvegarde dans la table Nomenclature
+            
+            values = nom_form.save(commit = False)
+            values.codesyno = int(values.codesyno)
+            # vérification du code synonyme (si il y a eu changement)
+            if (values.codesyno != old_code):
+                # Cas : anciennement valide (passage VALIDE -> SYN)
+                if old_code == 0:
+                    # On récupère l'id du nouveau valide
+                    new_valide = int(request.POST['changeCode'])
+                    # Mise à jour dans la BDD
+                    valide = Nomenclature.objects.filter(id = new_valide)
+                    valide.update(codesyno = 0)
+                    # si un synonyme était déjà SYN USUEL, on le change en SYN
+                    if values.codesyno == 3:
+                        if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
+                            old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
+                            genSyno(old_usuel)
+                    synonymes = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno__in = [1,2]))
+                    for s in synonymes:
+                        gensyno(s, valide = valide[0])
+                # Cas : synonyme
+                else:
+                    # passage SYN -> VALIDE
+                    if values.codesyno == 0:
+                        old_valide = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 0))
+                        # Etat dans lequel mettre l'ancien VALIDE
+                        old_state = int(request.POST['changeCode'])
+                        # SYN (classique)
+                        if old_state == 1:
+                            genSyno(old_valide[0], valide = values) # mise à jour automatique avec le code 1 ou 2
+                        # SYN USUEL
                         else:
                             # si un synonyme était déjà SYN USUEL, on le change en SYN
                             if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
                                 old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
-                                genSyno(old_usuel)
+                                genSyno(old_usuel, valide = values)
+
+                            # changement de l'ancien VALIDE en SYN USUEL
+                            old_valide.update(codesyno = 3)
+                        # On met à jour de la des synonymes
+                        synonymes = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno__in = [1,2]))
+                        for s in synonymes:
+                            genSyno(s, valide = values)
+                    # passage SYN -> SYN USUEL
+                    else:
+                        # si un synonyme était déjà SYN USUEL, on le change en SYN
+                        if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
+                            old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
+                            genSyno(old_usuel)
 
 
-                values.save(using='simagree')
-                return redirect(reverse(details, kwargs = {'id_item' : values.id}))
+            values.save()
+            return redirect(reverse(details, kwargs = {'id_item' : values.id}))
 
-        return render(req, 'modify.html', {
-            'form' : nom_form,
-            'others' : others,
-            'data' : others_json,
-            'state' : inst_nom.codesyno
-            })
-    else:
+    return render(request, 'modify.html', {
+        'form' : nom_form,
+        'others' : others,
+        'data' : others_json,
+        'state' : inst_nom.codesyno
+        })
+
+
+def modifyTaxon(request, tax):
+    if not request.user.is_authenticated:
         return redirect(reverse(connexion))
-
-def modifyTaxon(req, tax):
-    if not req.user.is_authenticated:
-        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
     inst = Identifiants.objects.get(taxon = tax)
     shrooms = Nomenclature.objects.filter(taxon = tax).order_by('codesyno').values(
         'genre',
@@ -377,55 +389,73 @@ def modifyTaxon(req, tax):
         'codesyno',
         'taxon'
     )
-    if req.method == 'GET':
-        form = ModFormTax(req.GET or None, instance = inst)
-    elif req.method == 'POST':
-        form = ModFormTax(req.POST, instance = inst)
+    if request.method == 'GET':
+        form = ModFormTax(request.GET or None, instance = inst)
+    elif request.method == 'POST':
+        form = ModFormTax(request.POST, instance = inst)
         if form.is_valid():
             values = form.save(commit = False)
+            print(values)
             values.save()
-            valide = Nomenclature.objects.get(taxon = values.taxon)
+            valide = Nomenclature.objects.filter(Q(taxon = values.taxon) & Q(codesyno = 0))[0]
             return redirect(reverse(details, kwargs = {'id_item' : valide.id}))
-    return render(req, 'modify_tax.html', {'form' : form, 'shrooms' : shrooms})
+    return render(request, 'modify_tax.html', {'form' : form, 'shrooms' : shrooms})
 
 
 
 
 ########## Vues pour la gestion des thèmes ##########
 
-def themes(req):
-    if not req.user.is_authenticated:
+def themes(request):
+    if not request.user.is_authenticated:
         return redirect(reverse(connexion))
-    themes_list = Themes.objects.all()
-    if req.method == 'GET':
-        form = AddThemeForm(req.GET or None)
-    elif req.method == 'POST':
-        form = AddThemeForm(req.POST)
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+    themes_list = Themes.objects.order_by('theme').all()
+    if request.method == 'GET':
+        form = AddThemeForm(request.GET or None)
+    elif request.method == 'POST' and request.POST["action"] == "add":
+        form = AddThemeForm(request.POST)
         if form.is_valid():
             inst = form.save(commit = False)
-            inst.save(using='simagree')
-    return render(req, 'add_theme.html', {'form' : form, 'themes_list' : themes_list})
+            inst.save()
+    elif request.method == 'POST' and request.POST["action"] == "edit":
+        form = AddThemeForm()
+        Themes.objects.filter(id = request.POST.get('ident')).update(titre = request.POST.get('titre'))
+        
+    return render(request, 'add_theme.html', {'form' : form, 'themes_list' : themes_list})
 
-def deleteTheme(req):
-    if req.method == 'POST':
-        item = Themes.objects.get(id = req.POST.get('ident'))
+def deleteTheme(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+    if request.method == 'POST':
+        item = Themes.objects.get(id = request.POST.get('ident'))
         item.delete()
         return redirect(reverse(themes))
 
 
 ########## Vues pour la gestion des pdf ##########
 
-def send_file(request, tax, type):
-
+def send_file(request, tax, type_fiche):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
     #Suppression des fiches si trop nombreuses dans le dossier
-    files = next(os.walk('./app/pdf_assets/fiches'))[2]
-    if len(files) > 100:
+    dir_fiches = settings.BASE_DIR +  '/app/pdf_assets/fiches/'
+    try:
+        files = next(os.walk(dir_fiches))[2]
+    except:
+        raise Http404()
+    if len(files) > 20:
         for i in files:
-            os.remove('./app/pdf_assets/fiches/' + i)
+            os.remove(dir_fiches + i)
 
     # Generation du pdf
+    # Objet
     item = Nomenclature.objects.select_related('taxon').filter(Q(taxon = tax) & Q(codesyno = 0)).values(
-        'taxon__theme1',
         'taxon__fiche',
         'genre',
         'espece',
@@ -433,11 +463,31 @@ def send_file(request, tax, type):
         'taxon__noms',
         'forme' ,
         'taxon__comestible',
+        'taxon__notes',
+        'taxon__ecologie',
+        'taxon__theme1',
+        'taxon__theme2',
+        'taxon__theme3',
+        'taxon__theme4',
+        'taxon_id'
     )[0]
+
+
     vars = {}
 
+    usuel = Nomenclature.objects.filter(Q(taxon = tax) & Q(codesyno = 3)).values('genre', 'espece', 'variete', 'forme')
+
+    if len(usuel) > 0:
+        try:
+            vars['usuel_genre'] = usuel[0]['genre']
+            vars['usuel_espece'] = usuel[0]['espece']
+            vars['usuel_variete'] = none2string(usuel[0]['variete'])
+            vars['usuel_forme'] = none2string(usuel[0]['forme'])
+        except:
+            raise Http404()
+    
     try:
-        vars['theme'] = none2string(item['taxon__theme1'])
+        vars['taxon'] = str(item['taxon_id'])
         vars['fiche'] = none2string(item['taxon__fiche'])
         vars['genre'] = item['genre']
         vars['espece'] = item['espece']
@@ -445,23 +495,31 @@ def send_file(request, tax, type):
         vars['forme'] = none2string(item['forme'])
         vars['noms'] = none2string(item['taxon__noms'])
         vars['comestibilite'] = none2string(item['taxon__comestible'])
-        vars['obs'] = "C'est joli"
-        fullpath = 'app/pdf_assets/fiches/' + none2string(item['taxon__fiche']) + '.pdf'
+        vars['obs'] = [none2string(item['taxon__notes']), none2string(item['taxon__ecologie'])]
+        fullpath = dir_fiches + none2string(item['taxon__fiche']) + '.pdf'
     except Exception as e:
         raise Http404()
     try:
-        if type == "theme":
-            generateFicheTheme(fullpath, vars)
-        else:
+        if type_fiche == "classique":
+            # Présence d'un thème ?
+            has_theme = [item['taxon__theme1'], item['taxon__theme2'], item['taxon__theme3'], item['taxon__theme4']]
+            has_theme = not (has_theme.count(None) == len(has_theme))
+            if has_theme:
+                vars['theme'] = 'Th'
             generateFiche(fullpath, vars)
+        else:
+            vars['theme_code'] = type_fiche
+            titre = Themes.objects.get(theme = type_fiche).titre
+            vars['theme_titre'] = none2string(titre)
+            generateFicheTheme(fullpath, vars)
         return FileResponse(open(fullpath, 'rb'), content_type='application/pdf')
     except FileNotFoundError:
         raise Http404()
 
-########## Vues pour la gestion des fiches récolte ##########
-
-def editList(req, id_liste):
-    if not req.user.is_authenticated:
+########## Vues pour la gestion des fiches récolte (EBAUCHE) ##########
+"""
+def editList(request, id_liste):
+    if not request.user.is_authenticated:
         return redirect(reverse(connexion))
     liste_instance = ListeRecolte.objects.get(id = id_liste)
     taxons = liste_instance.taxons.all()
@@ -469,12 +527,12 @@ def editList(req, id_liste):
     # calcul du total de pages
     total = Nomenclature.objects.all().filter(~Q(taxon__in = liste_taxons)).count()
     pages = nb_pages(total, 1000)
-    if req.method == "POST" and req.POST['action'] == "edit":
+    if request.method == "POST" and request.POST['action'] == "edit":
         listeform = EditListTaxonsForm(
-            req.POST, 
+            request.POST, 
             instance=liste_instance,
             taxons=liste_taxons, 
-            page=int(req.GET['page'])
+            page=int(request.GET['page'])
         )
         if listeform.is_valid():
             liste_taxons = [int(i) for i in listeform.cleaned_data['selectf']]
@@ -488,50 +546,50 @@ def editList(req, id_liste):
             listeform = EditListTaxonsForm(
                 instance = liste_instance,
                 taxons=liste_taxons,
-                page=int(req.GET['page'])
+                page=int(request.GET['page'])
             )
             
     else:
         listeform = EditListTaxonsForm(
             instance = liste_instance,
             taxons=liste_taxons,
-            page=int(req.GET['page'])
+            page=int(request.GET['page'])
         )
-    return render(req, 'listes_create.html', {
+    return render(request, 'listes_create.html', {
         'listeform' : listeform,
         'pages_int' : pages,
         'pages' : range(1, pages + 1),
         'liste' : id_liste
         })
 
-def showLists(req):
-    if not req.user.is_authenticated:
+def showLists(request):
+    if not request.user.is_authenticated:
         return redirect(reverse(connexion))
     listes = ListeRecolte.objects.all().only('lieu', 'date', 'id')
     lieux = LieuRecolte.objects.all()
     modal_display = ''
-    if req.method == "POST" and req.POST['action'] == "lieu":
+    if request.method == "POST" and request.POST['action'] == "lieu":
         liste_form = AddListForm()
-        lieu_form = AddLieuForm(req.POST)
+        lieu_form = AddLieuForm(request.POST)
         modal_display = "lieu"
         if lieu_form.is_valid():
             lieu_form.save()
-    elif req.method == "POST" and req.POST['action'] == "liste":
-        liste_form = AddListForm(req.POST)
+    elif request.method == "POST" and request.POST['action'] == "liste":
+        liste_form = AddListForm(request.POST)
         lieu_form = AddLieuForm()
         modal_display = "liste"
         if liste_form.is_valid():
             liste_form.save()
-    elif req.method == "POST" and req.POST['action'] == "deleteLieu":
+    elif request.method == "POST" and request.POST['action'] == "deleteLieu":
         liste_form = AddListForm()
         lieu_form = AddLieuForm()
-        lieu = LieuRecolte.objects.get(id = req.POST['ident'])
+        lieu = LieuRecolte.objects.get(id = request.POST['ident'])
         lieu.delete()
     else:
         liste_form = AddListForm()
         lieu_form = AddLieuForm()
 
-    return render(req, 'listes.html', {
+    return render(request, 'listes.html', {
         'listes' : listes,
         'lieux' : lieux,
         'listeform' : liste_form,
@@ -539,8 +597,8 @@ def showLists(req):
         'modal_display' : modal_display
         })
 
-def detailsList(req, id_liste):
-    if not req.user.is_authenticated:
+def detailsList(request, id_liste):
+    if not request.user.is_authenticated:
         return redirect(reverse(connexion))
     liste = ListeRecolte.objects.get(id = id_liste)
     taxons = []
@@ -548,24 +606,28 @@ def detailsList(req, id_liste):
         if (int(i.taxon) not in taxons):
             taxons.append(int(i.taxon))
     items = Nomenclature.objects.select_related('taxon').filter(Q(taxon__in = taxons) & Q(codesyno = 0)).values('genre', 'espece')
-    return render(req, 'listes.html', {'liste' : liste, 'items' : items})
+    return render(request, 'listes.html', {'liste' : liste, 'items' : items})
 
-def modList(req, id_liste):
-    if not req.user.is_authenticated:
+def modList(request, id_liste):
+    if not request.user.is_authenticated:
         return redirect(reverse(connexion))
     liste = ListeRecolte.objects.get(id = id_liste)
     all_taxons = Nomenclature.objects.select_related('taxon').only('taxon_id', 'genre', 'espece')
-    if req.method == "POST":
-        form = AddListForm(req.POST, instance = liste)
+    if request.method == "POST":
+        form = AddListForm(request.POST, instance = liste)
         if form.is_valid():
             print(form.cleaned_data)
     else:
         form = AddListForm(instance = liste)
 
-
+"""
 ########## Vues pour l'import / export de la base en csv ##########
 
-def csvIdent(req):
+def csvIdent(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
     # Création d'une reponse au format csv
     response = HttpResponse(content_type='text/csv')
     filename = datetime.datetime.now().strftime('"SMS_Identifiants_%d-%m-%Y.csv"')
@@ -602,7 +664,11 @@ def csvIdent(req):
     response.write(template.render(c))
     return response
 
-def csvNomenc(req):
+def csvNomenc(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
     # Création d'une reponse au format csv
     response = HttpResponse(content_type='text/csv')    
     filename = datetime.datetime.now().strftime('"SMS_Nomenclature_%d-%m-%Y.csv"')
@@ -671,19 +737,12 @@ def upload_csv(request):
                 return HttpResponseRedirect(reverse("imp-exp"))
     return HttpResponseRedirect(reverse("imp-exp"))
 
-def pdf_view(request):
-    try:
-        return FileResponse(open('app/test1.pdf', 'rb'), content_type='application/pdf')
-    except FileNotFoundError:
-        raise Http404()
-
-
 ########## Cimetière ##########
 
-def cimetiere(req):
-    if not req.user.is_authenticated:
+def cimetiere(request):
+    if not request.user.is_authenticated:
         return redirect(reverse(connexion))
-    if not (req.user.groups.filter(name='Administrateurs').exists()):
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
         return redirect(reverse(accueil))
 
     items = Nomenclature.objects.using('cimetiere').filter(codesyno = 0).values(
@@ -703,15 +762,15 @@ def cimetiere(req):
     
     existants = [i[0] for i in items_existants]
 
-    return render(req, 'cimetiere.html', {
+    return render(request, 'cimetiere.html', {
         'shrooms' : items,
         'existants' : existants
     })
 
-def restoreTaxon(req, tax):
-    if not req.user.is_authenticated:
+def restoreTaxon(request, tax):
+    if not request.user.is_authenticated:
         return redirect(reverse(connexion))
-    if not (req.user.groups.filter(name='Administrateurs').exists()):
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
         return redirect(reverse(accueil))
     id = Identifiants.objects.using('cimetiere').get(taxon = tax)
     id_cpy = Identifiants.objects.using('cimetiere').get(taxon = tax)

@@ -147,7 +147,15 @@
           }
           $("#id_changeCode").text("Sélectionner un nouveau nom valide :");
           for(let i = 0; i < data.length; i++) {
-            selector.append(`<option value="${data[i].pk}">${data[i].fields.genre} ${data[i].fields.espece} ( ${data[i].fields.variete} ${data[i].fields.forme} ) - ${data[i].fields.autorite}</option>`);
+            let optstr = []
+            if (data[i].fields.variete != "") {
+              optstr = `${data[i].fields.genre} ${data[i].fields.espece} var. ${data[i].fields.variete} ${data[i].fields.autorite}`
+            } else if (data[i].fields.forme != "") {
+              optstr = `${data[i].fields.genre} ${data[i].fields.espece} f. ${data[i].fields.forme} ${data[i].fields.autorite}`
+            } else {
+              optstr = `${data[i].fields.genre} ${data[i].fields.espece} ${data[i].fields.autorite}`
+            }
+            selector.append(`<option value="${data[i].pk}">${optstr}</option>`);
           }
         } else {
           if(synoSelector.val() == "0") {
