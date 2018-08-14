@@ -40,4 +40,5 @@ urlpatterns = [
     url(r'^import_export/$', views.upload_csv, name = 'imp-exp'),
     url(r'^deleted/$', views.cimetiere, name = 'cimetiere'),
     url(r'^restore/(?P<tax>[0-9]+)/$', views.restoreTaxon, name = 'restore-tax'),
+    url(r'^bulkpdf/$', views.pdf_bulk, name='pdf-bulk')
 ]

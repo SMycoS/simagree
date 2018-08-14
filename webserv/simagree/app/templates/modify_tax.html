@@ -39,7 +39,7 @@
                   </div>
                 </div>
                 <div class="row">
-                  <div class="form-group col-9">
+                  <div class="form-group col-6">
                     <label for="{{ form.noms.id_for_label }}">Noms : </label>
                     {{ form.noms }}
                     <small class="form-text text-muted">{{ form.noms.errors }}</small>
@@ -68,17 +68,17 @@
                     {{ form.apparition }}
                     <small class="form-text text-muted">{{ form.apparition.errors }}</small>
                   </div>
-                  <div class="form-group col-3">
-                    <label for="{{ form.ecologie.id_for_label }}">Ecologie : </label>
-                    {{ form.ecologie }}
-                    <small class="form-text text-muted">{{ form.ecologie.errors }}</small>
-                  </div>
                 </div>
                 <div class="row">
-                  <div class="form-group col-6">
+                  <div class="form-group col-4">
                     <label for="{{ form.notes.id_for_label }}">Notes : </label>
                     {{ form.notes }}
                     <small class="form-text text-muted">{{ form.notes.errors }}</small>
+                  </div>
+                  <div class="form-group col-4">
+                    <label for="{{ form.ecologie.id_for_label }}">Ecologie : </label>
+                    {{ form.ecologie }}
+                    <small class="form-text text-muted">{{ form.ecologie.errors }}</small>
                   </div>
                 </div>
                 <div class="row">
@@ -98,12 +98,39 @@
                     <small class="form-text text-muted">{{ form.icono3.errors }}</small>
                   </div>
                 </div>
-                {{form.theme1}}
-                {{form.theme2}}
-                {{form.theme3}}
-                {{form.theme4}}
+                <div class="row">
+                    <div class="form-group col-2">
+                        <label for="{{ form.theme1.id_for_label }}">Thème (1) : </label>
+                        {{ form.theme1 }}
+                        <small class="form-text text-muted">{{ form.theme1.errors }}</small>
+                      </div>
+                    <div class="form-group col-2">
+                        <label for="{{ form.theme2.id_for_label }}">Thème (2) : </label>
+                        {{ form.theme2 }}
+                        <small class="form-text text-muted">{{ form.theme2.errors }}</small>
+                      </div>
+                      <div class="form-group col-2">
+                          <label for="{{ form.theme3.id_for_label }}">Thème (3) : </label>
+                          {{ form.theme3 }}
+                          <small class="form-text text-muted">{{ form.theme3.errors }}</small>
+                        </div>
+                        <div class="form-group col-2">
+                            <label for="{{ form.theme4.id_for_label }}">Thème (4) : </label>
+                            {{ form.theme4 }}
+                            <small class="form-text text-muted">{{ form.theme4.errors }}</small>
+                          </div>
+                </div>
 
                 <button type="submit" class="btn btn-primary">Modifier</button>
         </form>
 </div>
+<script>
+  $(document).ready(() => {
+    $('#id_sms').change(() => {
+        if (!$('#id_sms').is(':checked')) {
+          alert('Attention, vous venez de décocher la présence à la SMS !');
+        }
+      })
+  })
+</script>
 {% endblock %}

@@ -47,7 +47,7 @@
                 </div>
               </div>
         <div class="row">
-          <div class="form-group col-9">
+          <div class="form-group col-6">
             <label for="{{ form.noms.id_for_label }}">Noms : </label>
             {{ form.noms }}
             <small class="form-text text-muted">{{ form.noms.errors }}</small>
@@ -97,12 +97,12 @@
               <small class="form-text text-muted">{{ form2.biblio1.errors }}</small>
             </div>
             <div class="form-group col-2">
-              <label for="{{ form2.biblio2.id_for_label }}">Bilbiographie (2) : </label>
+              <label for="{{ form2.biblio2.id_for_label }}">Bibliographie (2) : </label>
               {{ form2.biblio2 }}
               <small class="form-text text-muted">{{ form2.biblio2.errors }}</small>
             </div>
             <div class="form-group col-2">
-              <label for="{{ form2.bilio3.id_for_label }}">Bibliographie (3) : </label>
+              <label for="{{ form2.biblio3.id_for_label }}">Bibliographie (3) : </label>
               {{ form2.biblio3 }}
               <small class="form-text text-muted">{{ form2.biblio3.errors }}</small>
             </div>
@@ -183,16 +183,23 @@
               </form>
           <form action="">
             <div class="form-group">
-              <label for="prevTax">Insérer après</label>
-              <select name="prevTax" id="prevTaxSelect" class="chosen-select">
-                {% for item in results %}
-                <option value="{{ item.taxon_id }}">{{ item.taxon_id }} - {{ item.genre }} {{ item.espece }}
-                  {% if item.variete and item.variete.strip %} var. {{ item.variete }}{% endif %}
-                  {% if item.forme and item.forme.strip %} f. {{ item.forme }}{% endif %}
-                </option>
-                {% endfor %}
-              </select>
-              <button id="taxBtn" class="btn btn-primary">Go</button>
+              <div class="taxInit">
+                <label for="prevTax">Insérer après</label>
+                <select name="prevTax" id="prevTaxSelect" class="chosen-select">
+                  {% for item in results %}
+                  <option value="{{ item.taxon_id }}">{{ item.taxon_id }} - {{ item.genre }} {{ item.espece }}
+                    {% if item.variete and item.variete.strip %} var. {{ item.variete }}{% endif %}
+                    {% if item.forme and item.forme.strip %} f. {{ item.forme }}{% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+                <button id="taxBtn" class="btn btn-primary">Génération du taxon</button>
+              </div>
+              <div class="taxInit">
+                <p>Insertion en fin de liste</p>
+                <input type="hidden" value="{{ max_tax }}" id="maxTaxIn">
+                <button class="btn btn-primary" id="maxTaxBtn">Insérer en fin de liste</button>
+              </div>
               {% if results %}
                 <script>
                   $('#taxonModal').modal('show');

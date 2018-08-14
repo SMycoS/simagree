@@ -45,4 +45,10 @@ $(document).ready(() => {
         $('#id_tax').val(parseInt($('#prevTaxSelect').val(),10));
         $('#taxonModal').modal('hide');
     })
+
+    $('#maxTaxBtn').on('click', (e) => {
+        e.preventDefault();
+        $('#id_taxon').val(parseInt($('#maxTaxIn').val(), 10));
+        $('#taxonModal').modal('hide');
+    })
 });

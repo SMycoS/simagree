@@ -8,42 +8,47 @@
                 {{ form.non_field_errors }}
                 <div class="row">
                     <div class="form-group col-2">
-                        <label for="{{ form.nomUsuel.id_for_label }}">Nom vernaculaire : </label>
-                        {{ form.nomUsuel }}
-                        <small class="form-text text-muted">{{ form.nomUsuel.errors }}</small>
+                        <label for="{{ form.taxon.id_for_label }}">N° Taxon</label>
+                        {{ form.taxon }}
+                        <small class="form-text text-muted">{{ form.taxon.errors }}</small>
                     </div>
                     <div class="form-group col-2">
-                        <label for="{{ form.genre.id_for_label }}">Genre : </label>
+                        <label for="{{ form.genre.id_for_label }}">Genre</label>
                         {{ form.genre }}
                         <small class="form-text text-muted">{{ form.genre.errors }}</small>
                     </div>
                     <div class="form-group col-2">
-                        <label for="{{ form.espece.id_for_label }}">Espèce : </label>
+                        <label for="{{ form.espece.id_for_label }}">Espèce</label>
                         {{ form.espece }}
                         <small class="form-text text-muted">{{ form.espece.errors }}</small>
                     </div>
                 </div>
                 <div class="row">
                     <div class="form-group col-2">
-                        <label for="{{ form.comestible.id_for_label }}">Comestibilité : </label>
+                        <label for="{{ form.comestible.id_for_label }}">Comestibilité</label>
                         {{ form.comestible }}
                         <small class="form-text text-muted">{{ form.comestible.errors }}</small>
+                    </div>
+                    <div class="form-group col-2">
+                        <label for="{{ form.nomUsuel.id_for_label }}">Nom vernaculaire</label>
+                        {{ form.nomUsuel }}
+                        <small class="form-text text-muted">{{ form.nomUsuel.errors }}</small>
                     </div>
                 </div>
                 <div class="row">
                     <div class="form-group col-2">
-                        <label for="{{ form.presentSms.id_for_label }}">Présent à la SMS uniquement : </label>
+                        <label for="{{ form.presentSms.id_for_label }}">Présent à la SMS uniquement</label>
                         {{ form.presentSms }}
                         <small class="form-text text-muted">{{ form.presentSms.errors }}</small>
                     </div>
                     <div class="form-group col-2">
-                        <label for="{{ form.displaySyno.id_for_label }}">Afficher les synonymes : </label>
+                        <label for="{{ form.displaySyno.id_for_label }}">Afficher les synonymes</label>
                         {{ form.displaySyno }}
                         <small class="form-text text-muted">{{ form.displaySyno.errors }}</small>
                     </div>
                     {% if request.user|has_group:"Administrateurs" %}
                     <div class="form-group col-2">
-                        <label for="{{ form.a_imprimer.id_for_label }}">A imprimer : </label>
+                        <label for="{{ form.a_imprimer.id_for_label }}">A imprimer</label>
                         {{ form.a_imprimer }}
                         <small class="form-text text-muted">{{ form.a_imprimer.errors }}</small>
                     </div>
@@ -106,13 +111,13 @@
                             </button>
                             <div class="dropdown-menu">
                             <a class="dropdown-item" href="{% url 'modify-tax' tax=obj.taxon_id %}">Modifier le taxon</a>
-                            <a class="dropdown-item" href="{% url 'modify' id=obj.id %}">Modifier l'espèce</a>
+                            <a class="dropdown-item" href="{% url 'modify' id=obj.id %}">Modifier la nomenclature</a>
                             <div class="dropdown-divider"></div>
                             <form action="{% url 'delete' %}" method="post" id="delEspForm{{obj.id}}">
                                 {% csrf_token %}
                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
                                 <input type="hidden" name="ident" value="{{ obj.id }}">
-                                <button type="submit" class="dropdown-item" id="delEspBtn{{ obj.id }}">Supprimer l'espèce</button>
+                                <button type="submit" class="dropdown-item" id="delEspBtn{{ obj.id }}">Supprimer la nomenclature</button>
                             </form>
                             <form action="{% url 'delete-tax' %}" method="post" id="delTaxForm{{obj.id}}">
                                 {% csrf_token %}
@@ -150,15 +155,17 @@
                         <a href="{% url 'search' %}?{{ request.GET.urlencode }}" class="btn btn-primary btn-page-{{p}}">{{ p }}</a>
                     {% endif %}
                 {% endfor %}
+            {% if pages_int %}
             <script>
                 $(document).ready(() => {
                     var pages = {{ pages_int|safe }};
-                    for(let i = 1; i <= pages; i++) {
+                    for (let i = 1; i <= pages; i++) {
                         let oldval = $(`.btn-page-${i}`).attr('href');
-                        $(`.btn-page-${i}`).attr('href', oldval.replace(/page=[0-9]/i,`page=${i}`));
+                        $(`.btn-page-${i}`).attr('href', oldval.replace(/page=[0-9]+/i,`page=${i}`));
                     }
                 });
             </script>
+            {% endif %}
         </div>
     </section>
 {% endblock %}

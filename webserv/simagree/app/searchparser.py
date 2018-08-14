@@ -23,6 +23,10 @@ def dbRequest(data, size):
         query = query.filter(taxon__sms=True)
     if (data['a_imprimer']):
         query = query.filter(taxon__a_imprimer = True)
+
+    # filtre taxon
+    if (data['taxon']):
+        query = query.filter(taxon__taxon__istartswith = data['taxon'])
     
     # filtres sur les champs texte
     if (data['nomUsuel']):
@@ -33,12 +37,9 @@ def dbRequest(data, size):
         query = query.filter(espece__icontains=data['espece'])
 
     # selecteur comestible
-    if (data['comestible'] == 'yes'):
-        query = query.filter(taxon__comestible='C')
-    elif (data['comestible'] == 'no'):
-        query.exclude(taxon__comestible='C')
-
-    
+    if data['comestible'] != 'all':
+        query = query.filter(taxon__comestible = data['comestible'])
+ 
     # la requête n'est effectuée qu'une seule fois, ci-dessous
     return (
         query.count(),

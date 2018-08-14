@@ -25,7 +25,8 @@ SECRET_KEY = 'dasv%-v-$m&9scnoe*c@o65n#1nu2qsp89_yj&6^fs1yn8hqg7'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+]
 
 
 # Application definition
@@ -145,5 +146,8 @@ STATIC_URL = '/app/static/'
 INTERNAL_IPS = ['127.0.0.1']
 #SESSION_COOKIE_AGE = 900
 #SESSION_SAVE_EVERY_REQUEST = True
+#CSRF_COOKIE_SECURE = True
+#SESSION_COOKIE_SECURE = True
+#CONN_MAX_AGE = None
 
 

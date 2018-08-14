@@ -79,6 +79,7 @@ def replaceIdentifiants(file):
         Themes.objects.using('import-check').all().delete()
         Themes.objects.using('import-check').bulk_create(theme_list_instance)
         Themes.objects.bulk_create(theme_list_instance)
+        Theme.objects.using('cimetiere').bulk_create(theme_list_instance)
 
     # Création des objets Identifiants
 

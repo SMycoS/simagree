@@ -122,9 +122,9 @@
         <div class="row">
             <div class="col-5">
                 <h2>Ecologie</h2>
-                <p>{{ shroom.taxon__ecologie }}</p>
+                <div class="pre">{{ shroom.taxon__ecologie }}</div>
                 <h2>Notes</h2>
-                <p>{{ shroom.taxon__notes }}</p>
+                <div class="pre">{{ shroom.taxon__notes }}</div>
             </div>
             <div class="col-3">
 
@@ -150,7 +150,7 @@
       {% if request.user|has_group:"Administrateurs" %}
       <div class="container fiches">
         <h1>Génération de fiches</h1>
-        <a href="{% url 'sendfile' tax=shroom.taxon_id type_fiche="classique" %}" class="btn btn-warning">Générer une fiche classique</a>
+        <a href="{% url 'sendfile' tax=shroom.taxon_id type_fiche="systematique" %}" class="btn btn-warning">Générer une fiche systématique</a>
         {% if shroom.taxon__theme1 %}
         <a href="{% url 'sendfile' tax=shroom.taxon_id type_fiche=shroom.taxon__theme1 %}" class="btn btn-secondary">Générer une fiche thématique {{shroom.taxon__theme1}}</a>
         {% endif %}

@@ -3,14 +3,17 @@ from django.forms import formset_factory, inlineformset_factory
 from .models import *
 import itertools
 from django.db.models import Q
+from django.db.models.functions import Length
+
 
 ########## RECHERCHE ##########
 
 class SearchForm(forms.Form):
+    taxon = forms.IntegerField(label = 'Taxon', required = False, widget = forms.NumberInput(attrs={'class' : 'form-control'}))
     nomUsuel = forms.CharField(label = 'Nom', required=False, widget=forms.TextInput(attrs={'class' : 'form-control'}))
     genre = forms.CharField(label = 'Genre', required=False, widget=forms.TextInput(attrs={'class' : 'form-control'}))
     espece = forms.CharField(label = 'Espèce', required=False, widget=forms.TextInput(attrs={'class' : 'form-control'}))
-    opts = [('all','Non renseigné'), ('yes', 'Oui'), ('no', 'Non')]
+    opts = [('all','Non renseigné'), ('C', 'Comestible'), ('NC', 'Non Comestible'), ('T', 'Toxique'), ('MO', 'Mortel')]
     comestible = forms.ChoiceField(label='Comestible', widget=forms.Select(attrs={'class' : 'form-control'}), choices=opts)
     presentSms = forms.BooleanField(label='Afficher uniquement les espèces présentes à la SMS', widget=forms.CheckboxInput(attrs={'class' : 'form-control'}), required=False)
     displaySyno = forms.BooleanField(label='Afficher les synonymes', widget=forms.CheckboxInput(attrs={'class' : 'form-control'}), required=False)
@@ -44,7 +47,7 @@ class AddFormId(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AddFormId, self).__init__(*args, **kwargs)
-        self.list = Themes.objects.all()
+        self.list = Themes.objects.all().order_by(Length('theme').asc(), 'theme')
         self.fields['theme1'].queryset = self.list
         self.fields['theme1'].required = False
         self.fields['theme2'].queryset = self.list
@@ -66,14 +69,14 @@ class AddFormId(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'taxon' : forms.NumberInput(attrs={'class' : 'form-control'}),
-            'noms' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'noms' : forms.Textarea(attrs={'class' : 'form-control', 'rows' : 5}),
             'fiche' :forms.NumberInput(attrs={'class' : 'form-control'}),
             'sms' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
             'comestible' : forms.Select(attrs={'class' : 'form-control'}, choices = [(None, 'Inconnu'), ('C', 'Comestible'), ('NC', 'Non Comestible'), ('T', 'Toxique'), ('MO', 'Mortel')]),
             'a_imprimer' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
             'apparition' : forms.TextInput(attrs={'class' : 'form-control'}),
-            'notes' : forms.Textarea(attrs={'class' : 'form-control'}),
-            'ecologie' : forms.Textarea(attrs={'class' : 'form-control'}),
+            'notes' : forms.Textarea(attrs={'class' : 'form-control', 'rows' : 5}),
+            'ecologie' : forms.Textarea(attrs={'class' : 'form-control', 'rows' : 5}),
             'icono1' : forms.TextInput(attrs={'class' : 'form-control'}),
             'icono2' : forms.TextInput(attrs={'class' : 'form-control'}),
             'icono3' : forms.TextInput(attrs={'class' : 'form-control'}),
@@ -140,7 +143,7 @@ class ModFormTax(forms.ModelForm):
         super(ModFormTax, self).__init__(*args, **kwargs)
         self.fields['taxon'].disabled = True
         self.fields['fiche'].disabled = True
-        self.list = Themes.objects.all()
+        self.list = Themes.objects.all().order_by(Length('theme').asc(), 'theme')
         self.fields['theme1'].queryset = self.list
         self.fields['theme1'].required = False
         self.fields['theme2'].queryset = self.list
@@ -162,17 +165,21 @@ class ModFormTax(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'taxon' : forms.NumberInput(attrs={'class' : 'form-control'}),
-            'noms' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'noms' : forms.Textarea(attrs={'class' : 'form-control', 'rows' : 5}),
             'fiche' :forms.NumberInput(attrs={'class' : 'form-control'}),
             'sms' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
             'comestible' : forms.Select(attrs={'class' : 'form-control'}, choices = [(None, 'Inconnu'), ('C', 'Comestible'), ('NC', 'Non Comestible'), ('T', 'Toxique'), ('MO', 'Mortel')]),
             'a_imprimer' : forms.CheckboxInput(attrs={'class' : 'form-control'}),
             'apparition' : forms.TextInput(attrs={'class' : 'form-control'}),
-            'notes' : forms.Textarea(attrs={'class' : 'form-control'}),
-            'ecologie' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'notes' : forms.Textarea(attrs={'class' : 'form-control', 'rows' : 5}),
+            'ecologie' : forms.Textarea(attrs={'class' : 'form-control', 'rows' : 5}),
             'icono1' : forms.TextInput(attrs={'class' : 'form-control'}),
             'icono2' : forms.TextInput(attrs={'class' : 'form-control'}),
             'icono3' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'theme1' : forms.Select(attrs={'class' : 'form-control'}),
+            'theme2' : forms.Select(attrs={'class' : 'form-control'}),
+            'theme3' : forms.Select(attrs={'class' : 'form-control'}),
+            'theme4' : forms.Select(attrs={'class' : 'form-control'}),
         }
 
 ########## CONNEXION ##########

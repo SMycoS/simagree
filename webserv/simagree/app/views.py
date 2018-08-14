@@ -1,14 +1,15 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect, HttpResponse, FileResponse, Http404
+from django.http import HttpResponseRedirect, HttpResponse, FileResponse, Http404, HttpResponseServerError
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User, Group
 from django.urls import reverse
-from django.db.models import Q, Max
+from django.db.models import Q, Max, F
 from django.core import serializers
 from wsgiref.util import FileWrapper
 from django.template import Context, loader
 from django.contrib import messages
 from django.conf import settings
+from copy import deepcopy
 
 import os
 import datetime
@@ -50,9 +51,30 @@ def genSyno(instance, valide = None):
     else:
         valide = valide.genre
     if (valide == instance.genre) and (instance.codesyno != 1):
-        Nomenclature.objects.filter(id = instance.id).update(codesyno = 1)
+        Nomenclature.objects.filter(id = instance.id).update(codesyno = 1, date = datetime.date.today())
     elif (instance.codesyno != 2):
-        Nomenclature.objects.filter(id = instance.id).update(codesyno = 2)
+        Nomenclature.objects.filter(id = instance.id).update(codesyno = 2, date = datetime.date.today())
+
+def duplicateNomenc(instance):
+    obj = Nomenclature(
+        codesyno = instance.codesyno,
+        genre = instance.genre,
+        espece = instance.espece,
+        variete = instance.variete,
+        forme = instance.forme,
+        autorite = instance.autorite,
+        biblio1 = instance.biblio1,
+        biblio2 = instance.biblio2,
+        biblio3 = instance.biblio3,
+        moser = instance.moser,
+        date = instance.date
+    )
+    return obj
+
+def idMaxId():
+    return Identifiants.objects.all().aggregate(Max('id'))['id__max'] + 1
+def nomencMaxId():
+    return Nomenclature.objects.all().aggregate(Max('id'))['id__max'] + 1
 
 ########## Vues pour la connexion ##########
 
@@ -138,11 +160,14 @@ def add(request):
             num_fiche = Identifiants.objects.all().aggregate(Max('fiche'))['fiche__max']
             num_fiche += 1
             inst.fiche = num_fiche
+            inst.id = idMaxId()
             inst.save()
             # sauvegarde dans la table Nomenclature
             values = nom_form.save(commit = False)
             values.taxon = inst
+            values.date = datetime.date.today()
             values.codesyno = 0
+            values.id = nomencMaxId()
             values.save()
             return redirect(reverse(details, kwargs = {'id_item' : values.id}))
     # Recherche
@@ -151,6 +176,7 @@ def add(request):
         nom_form = AddFormNom()
         search_form = LightSearchForm(request.POST)
         if search_form.is_valid():
+            # Taxon libre en fin de liste
             items = light_dbRequest(search_form.cleaned_data)
             return render(request, 'add.html', {
                 'form' : id_form, 
@@ -158,7 +184,8 @@ def add(request):
                 'searchform' : search_form, 
                 'results':items
                 })
-    return render(request, 'add.html', {'form' : id_form, 'form2' : nom_form,'searchform' : search_form})
+    max_tax = Identifiants.objects.all().aggregate(Max('taxon'))['taxon__max'] + 100 # on incrémente de 100 par 100 les taxons
+    return render(request, 'add.html', {'form' : id_form, 'form2' : nom_form,'searchform' : search_form, 'max_tax' : max_tax})
 
 
 def addPartial(request):
@@ -177,6 +204,8 @@ def addPartial(request):
             inst = Identifiants.objects.get(taxon = id)
             values = nom_form.save(commit = False)
             values.taxon = inst
+            values.id = nomencMaxId()
+            values.date = datetime.date.today()
             # vérification du code synonyme
             if values.codesyno == 0:
                 old_valide = Nomenclature.objects.filter(Q(taxon=inst.taxon) & Q(codesyno=0))[0]
@@ -271,7 +300,7 @@ def deleteTaxon(request):
     
         # Copie dans la db cimetiere de l'ID
         item_cpy = Identifiants.objects.get(taxon = request.POST.get('taxon'))
-        item_cpy.pk = None
+        item_cpy.id = None
         item_cpy.save(using='cimetiere')
 
         # Copie dans la db cimetiere des noms
@@ -279,9 +308,10 @@ def deleteTaxon(request):
         # Recharge de l'objet dans la db cimetiere
         inst_id = Identifiants.objects.using('cimetiere').get(taxon = request.POST.get('taxon'))
         for i in nom:
-            i.pk = None
-            i.taxon = inst_id
-            i.save(using='cimetiere')
+            obj = duplicateNomenc(i)
+            obj.id = None
+            obj.taxon = inst_id
+            obj.save(using='cimetiere')
 
         # Supression de la db principale
         item.delete()
@@ -323,15 +353,19 @@ def modify(request, id):
                     new_valide = int(request.POST['changeCode'])
                     # Mise à jour dans la BDD
                     valide = Nomenclature.objects.filter(id = new_valide)
-                    valide.update(codesyno = 0)
-                    # si un synonyme était déjà SYN USUEL, on le change en SYN
-                    if values.codesyno == 3:
-                        if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
-                            old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
-                            genSyno(old_usuel)
-                    synonymes = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno__in = [1,2]))
-                    for s in synonymes:
-                        gensyno(s, valide = valide[0])
+                    try:
+                        valide.select_for_update(codesyno = 0, date = datetime.date.today())
+                    except:
+                        return HttpResponseServerError()
+                    else:
+                        # si un synonyme était déjà SYN USUEL, on le change en SYN
+                        if values.codesyno == 3:
+                            if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
+                                old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
+                                genSyno(old_usuel)
+                        synonymes = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno__in = [1,2]))
+                        for s in synonymes:
+                            gensyno(s, valide = valide[0])
                 # Cas : synonyme
                 else:
                     # passage SYN -> VALIDE
@@ -348,9 +382,8 @@ def modify(request, id):
                             if (Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3)).count()) > 0:
                                 old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
                                 genSyno(old_usuel, valide = values)
-
                             # changement de l'ancien VALIDE en SYN USUEL
-                            old_valide.update(codesyno = 3)
+                            old_valide.select_for_update(codesyno = 3, date = datetime.date.today())
                         # On met à jour de la des synonymes
                         synonymes = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno__in = [1,2]))
                         for s in synonymes:
@@ -362,7 +395,7 @@ def modify(request, id):
                             old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
                             genSyno(old_usuel)
 
-
+            values.date = datetime.date.today()
             values.save()
             return redirect(reverse(details, kwargs = {'id_item' : values.id}))
 
@@ -411,14 +444,16 @@ def themes(request):
         return redirect(reverse(connexion))
     if not (request.user.groups.filter(name='Administrateurs').exists()):
         return redirect(reverse(accueil))
-    themes_list = Themes.objects.order_by('theme').all()
+    themes_list = Themes.objects.order_by(Length('theme').asc(), 'theme').all()
     if request.method == 'GET':
         form = AddThemeForm(request.GET or None)
     elif request.method == 'POST' and request.POST["action"] == "add":
         form = AddThemeForm(request.POST)
         if form.is_valid():
             inst = form.save(commit = False)
+            inst.id = Themes.objects.all().aggregate(Max('id'))['id__max'] + 1
             inst.save()
+            inst.save(using='cimetiere')
     elif request.method == 'POST' and request.POST["action"] == "edit":
         form = AddThemeForm()
         Themes.objects.filter(id = request.POST.get('ident')).update(titre = request.POST.get('titre'))
@@ -437,6 +472,15 @@ def deleteTheme(request):
 
 
 ########## Vues pour la gestion des pdf ##########
+
+def resetImpression(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+    
+    Identifiants.objects.filter(a_imprimer = True).update(a_imprimer = False)
+    return redirect(reverse(search))
 
 def send_file(request, tax, type_fiche):
     if not request.user.is_authenticated:
@@ -470,7 +514,7 @@ def send_file(request, tax, type_fiche):
         'taxon__theme3',
         'taxon__theme4',
         'taxon_id'
-    )[0]
+    )
 
 
     vars = {}
@@ -500,7 +544,7 @@ def send_file(request, tax, type_fiche):
     except Exception as e:
         raise Http404()
     try:
-        if type_fiche == "classique":
+        if type_fiche == "systematique":
             # Présence d'un thème ?
             has_theme = [item['taxon__theme1'], item['taxon__theme2'], item['taxon__theme3'], item['taxon__theme4']]
             has_theme = not (has_theme.count(None) == len(has_theme))
@@ -516,6 +560,80 @@ def send_file(request, tax, type_fiche):
     except FileNotFoundError:
         raise Http404()
 
+
+def pdf_bulk(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+    #Suppression des fiches si trop nombreuses dans le dossier
+    dir_fiches = settings.BASE_DIR +  '/app/pdf_assets/fiches/'
+    try:
+        files = next(os.walk(dir_fiches))[2]
+    except:
+        raise Http404()
+    if len(files) > 20:
+        for i in files:
+            os.remove(dir_fiches + i)
+
+    liste_fiches = [str(k['fiche']) + '.pdf' for k in Identifiants.objects.filter(a_imprimer = True).values('fiche')]
+    items = Nomenclature.objects.select_related('taxon').filter(Q(taxon__a_imprimer = True) & Q(codesyno = 0)).values(
+        'taxon__fiche',
+        'genre',
+        'espece',
+        'variete',
+        'taxon__noms',
+        'forme' ,
+        'taxon__comestible',
+        'taxon__notes',
+        'taxon__ecologie',
+        'taxon__theme1',
+        'taxon__theme2',
+        'taxon__theme3',
+        'taxon__theme4',
+        'taxon_id'
+    )
+
+    for i in items:
+        vars = {}
+        usuel = Nomenclature.objects.filter(Q(taxon = i['taxon_id']) & Q(codesyno = 3)).values('genre', 'espece', 'variete', 'forme')
+
+        if len(usuel) > 0:
+            try:
+                vars['usuel_genre'] = usuel[0]['genre']
+                vars['usuel_espece'] = usuel[0]['espece']
+                vars['usuel_variete'] = none2string(usuel[0]['variete'])
+                vars['usuel_forme'] = none2string(usuel[0]['forme'])
+            except:
+                raise Http404()
+        
+        try:
+            vars['taxon'] = str(i['taxon_id'])
+            vars['fiche'] = none2string(i['taxon__fiche'])
+            vars['genre'] = i['genre']
+            vars['espece'] = i['espece']
+            vars['variete'] = none2string(i['variete'])
+            vars['forme'] = none2string(i['forme'])
+            vars['noms'] = none2string(i['taxon__noms'])
+            vars['comestibilite'] = none2string(i['taxon__comestible'])
+            vars['obs'] = [none2string(i['taxon__notes']), none2string(i['taxon__ecologie'])]
+            fullpath = dir_fiches + none2string(i['taxon__fiche']) + '.pdf'
+        except Exception as e:
+            raise Http404()
+
+        # Présence d'un thème ?
+        has_theme = [i['taxon__theme1'], i['taxon__theme2'], i['taxon__theme3'], i['taxon__theme4']]
+        has_theme = not (has_theme.count(None) == len(has_theme))
+        if has_theme:
+            vars['theme'] = 'Th'
+        generateFiche(fullpath, vars)
+    bulk_pdf(liste_fiches, dir_fiches)
+    return FileResponse(open(settings.BASE_DIR + '/app/pdf_assets/fiches.pdf', 'rb'), content_type='application/pdf')
+
+        
+    
+
+    
 ########## Vues pour la gestion des fiches récolte (EBAUCHE) ##########
 """
 def editList(request, id_liste):
@@ -621,6 +739,7 @@ def modList(request, id_liste):
         form = AddListForm(instance = liste)
 
 """
+
 ########## Vues pour l'import / export de la base en csv ##########
 
 def csvIdent(request):
@@ -775,14 +894,15 @@ def restoreTaxon(request, tax):
     id = Identifiants.objects.using('cimetiere').get(taxon = tax)
     id_cpy = Identifiants.objects.using('cimetiere').get(taxon = tax)
     noms = Nomenclature.objects.using('cimetiere').filter(taxon = tax)
-    id_cpy.pk = None
+    id_cpy.id = idMaxId()
     id_cpy.save(using='default')
 
     id_def = Identifiants.objects.get(taxon = tax)
     for i in noms:
-        i.pk = None
-        i.taxon = id_def
-        i.save(using='default')
+        obj = duplicateNomenc(i)
+        obj.id = nomencMaxId()
+        obj.taxon = id_def
+        obj.save(using='default')
 
     id.delete()
     return redirect(reverse(cimetiere))
