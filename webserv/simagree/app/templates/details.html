@@ -147,10 +147,12 @@
             </div>
         </div>
       </div>
-      {% if request.user|has_group:"Administrateurs" %}
+      {% if request.user|has_group:"Guides" %}
       <div class="container fiches">
         <h1>Génération de fiches</h1>
+        {% if request.user|has_group:"Administrateurs" %}
         <a href="{% url 'sendfile' tax=shroom.taxon_id type_fiche="systematique" %}" class="btn btn-warning">Générer une fiche systématique</a>
+        {% endif %}
         {% if shroom.taxon__theme1 %}
         <a href="{% url 'sendfile' tax=shroom.taxon_id type_fiche=shroom.taxon__theme1 %}" class="btn btn-secondary">Générer une fiche thématique {{shroom.taxon__theme1}}</a>
         {% endif %}

@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^delete_tax/$', views.deleteTaxon, name = 'delete-tax'),
     url(r'^modify/(?P<id>[0-9]+)/$', views.modify, name = 'modify'),
     url(r'^modify_tax/(?P<tax>[0-9]+)/$', views.modifyTaxon, name = 'modify-tax'),
+    url(r'^modify_notes_eco/(?P<tax>[0-9]+)/$', views.modifyNotesEco, name = 'modify-noteseco'),
     url(r'^login/$', views.connexion, name = 'login'),
     url(r'^logout/$', views.deconnexion, name = 'logout'),
     url(r'^themes/$', views.themes, name = 'themes'),
@@ -40,5 +41,8 @@ urlpatterns = [
     url(r'^import_export/$', views.upload_csv, name = 'imp-exp'),
     url(r'^deleted/$', views.cimetiere, name = 'cimetiere'),
     url(r'^restore/(?P<tax>[0-9]+)/$', views.restoreTaxon, name = 'restore-tax'),
+    url(r'^defdelete/$', views.definitiveDelete, name = 'delete-cimetiere'),
+    url(r'^impression/$', views.impression, name = 'impression'),
+    url(r'^impression/reset/$', views.resetImpression, name = 'reset-impression'),
     url(r'^bulkpdf/$', views.pdf_bulk, name='pdf-bulk')
 ]

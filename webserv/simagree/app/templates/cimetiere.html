@@ -6,26 +6,31 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Taxon</th>
+                        <th class="small-col">Taxon</th>
                         <th>Genre</th>
                         <th>Espèce</th>
                         <th>Variété</th>
                         <th>Forme</th>
-                        <th>Autorité</th>
+                        <th class="large-col">Autorité</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for obj in shrooms %}
                     <tr>
-                    <td>{{ obj.taxon_id }}</td>
+                    <td class="small-col">{{ obj.taxon_id }}</td>
                     <td>{{ obj.genre|capfirst }}</td>
                     <td>{{ obj.espece|lower }}</td>
                     <td>{{ obj.variete }}</td>
                     <td>{{ obj.forme }}</td>
-                    <td>{{ obj.autorite }}</td>
+                    <td class="large-col">{{ obj.autorite }}</td>
                     <td>
                         <a href="{% url 'restore-tax' tax=obj.taxon_id %}" class="btn btn-warning" id="restore-{{obj.taxon_id}}">Restaurer</a>
+                        <form action="{% url 'delete-cimetiere' %}" method="post" id="delete-{{obj.id}}">
+                                {% csrf_token %}
+                                <input type="hidden" name="taxon" value="{{ obj.taxon_id }}">
+                                <button type="submit" class="btn btn-danger" id="delTaxBtn{{ obj.id }}">Supprimer le taxon</button>
+                        </form>
                     </td>
                     <script>
                             $(document).ready(() => {
@@ -35,6 +40,9 @@
                                     alert("Impossible de supprimer {{obj.genre}} {{obj.espece}} car son taxon ({{obj.taxon_id}}) est déjà présent dans la base principale.");
                                     {% endif %}
                                 });
+                                $('#delete-{{obj.id}}').on('submit', (e) => {
+                                return confirm("Voulez-vous vraiment supprimer définitivement {{ obj.genre }} {{ obj.espece }} ainsi que tous les synonymes correspondants ?");
+                            });
                             });
                         </script>
                     {% endfor %}

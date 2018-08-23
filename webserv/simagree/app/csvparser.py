@@ -2,6 +2,12 @@ import csv, datetime
 from .models import Identifiants, Themes, Nomenclature, Classification
 import traceback
 
+def OtoBool(s):
+    if isinstance(s, str):
+        if s == "O" or s == "o" or s == "True":
+            return True
+    return False
+
 # Identifiants
 def replaceIdentifiants(file):
 
@@ -28,15 +34,23 @@ def replaceIdentifiants(file):
     # liste des instances de thèmes ajoutés
     theme_list_instance = []
 
+
+
     # Itération sur les lignes
     for item in rows:
+        
+        present_sms = OtoBool(item[1])
+        if present_sms:
+            if item[2] == '':
+                return False
+
         # Création d'un objet
         # Initialisation avec les valeurs obligatoires et les champs texte
         obj = Identifiants(
             taxon = int(item[0]),
-            sms = bool(item[1]),
+            sms = present_sms,
             comestible = item[2],
-            a_imprimer = bool(item[4]),
+            a_imprimer = OtoBool(item[4]),
             apparition = item[5],
             noms = item[6], 
             notes = item[7],
@@ -116,10 +130,26 @@ def replaceNomenclature(file):
         if old_taxon != current_taxon:
             ident_instance = Identifiants.objects.get(taxon = current_taxon)
             old_taxon = current_taxon
+            valide = False
+            usuel = False
+
+        codesyno = int(item[1])
+        # Si il y a deux noms valides / usuels
+        if codesyno == 0:
+            if valide:
+                return False
+            else:
+                valide = True
+
+        if codesyno == 3:
+            if usuel:
+                return False
+            else:
+                usuel = True
         
         obj = Nomenclature(
             taxon = ident_instance,
-            codesyno = int(item[1]),
+            codesyno = codesyno,
             genre = item[2],
             espece = item[3],
             variete = item[4],
@@ -138,7 +168,7 @@ def replaceNomenclature(file):
         Nomenclature.objects.using('import-check').all().delete()
         Nomenclature.objects.using('import-check').bulk_create(elements)
     except:
-        traceback.print_exc()
+        #traceback.print_exc()
         return False
     else:
         Nomenclature.objects.all().delete()
@@ -165,7 +195,6 @@ def replaceClassification(file):
         Classification.objects.using('import-check').all().delete()
         Classification.objects.using('import-check').bulk_create(elements)
     except:
-        traceback.print_exc()
         return False
     else:
         Classification.objects.all().delete()

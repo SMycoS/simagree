@@ -45,8 +45,15 @@
                             <a class="dropdown-item" href="{% url 'add' %}">Ajout complet</a>
                             <a class="dropdown-item" href="{% url 'addPart' %}">Ajout nomenclature</a>
                             </li>
+                    {% endif %}
+                    {% if request.user|has_group:"Guides" %}
                             <li class="nav-item {% if request.resolver_match.url_name == 'themes' %}active{% endif %}">
                                 <a class="nav-link" href="{% url 'themes' %}">Thèmes</a>
+                            </li>
+                    {% endif %}
+                    {% if request.user|has_group:"Administrateurs" %}
+                            <li class="nav-item {% if request.resolver_match.url_name == 'impression' %}active{% endif %}">
+                                <a class="nav-link" href="{% url 'impression' %}">Impression</a>
                             </li>
                             <li class="nav-item {% if request.resolver_match.url_name == 'imp-exp' %}active{% endif %}">
                                 <a class="nav-link" href="{% url 'imp-exp' %}">Importer / Exporter</a>
@@ -57,7 +64,7 @@
                             <li class="nav-item {% if request.resolver_match.url_name == 'cimetiere' %}active{% endif %}">
                                 <a class="nav-link" href="{% url 'cimetiere' %}">Taxons supprimés</a>
                             </li>
-                        {% endif %}
+                    {% endif %}
                         </ul>
                         <div class="my-2 my-lg-0 navLogin">
                             {% if request.user.is_authenticated %}

@@ -27,6 +27,8 @@ def dbRequest(data, size):
     # filtre taxon
     if (data['taxon']):
         query = query.filter(taxon__taxon__istartswith = data['taxon'])
+    if (data['fiche']):
+        query = query.filter(taxon__fiche__istartswith = data['fiche'])
     
     # filtres sur les champs texte
     if (data['nomUsuel']):
@@ -51,7 +53,7 @@ def dbRequest(data, size):
             'forme',
             'taxon__sms',
             'taxon__comestible',
-            'taxon__noms',
+            'taxon__fiche',
             'id',
             'codesyno',
             'autorite'

@@ -155,7 +155,7 @@
 {% block extra %}
   <!-- Modal -->
   <div class="modal fade" id="taxonModal" tabindex="-1" role="dialog" aria-labelledby="taxonModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="taxonModalLabel">Sélection du taxon</h5>
@@ -178,27 +178,46 @@
                           <small class="form-text text-muted">{{ searchform.espece.errors }}</small>
                       </div>
                   </div>
-            
                   <button type="submit" class="btn btn-primary" name="action" value="search">Recherche</button>
+                  <div class="taxInit">
+                  <label for="prevTax1">Proche de : </label>
+                  <select name="prevTax1" id="prevTaxSelect1" class="chosen-select">
+                    {% for item in results %}
+                    <option value="{{ item.taxon_id }}">{{ item.taxon_id }} - {{ item.genre }} {{ item.espece }}
+                      {% if item.variete and item.variete.strip %} var. {{ item.variete }}{% endif %}
+                      {% if item.forme and item.forme.strip %} f. {{ item.forme }}{% endif %}
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="btn btn-primary" name="action" value="result">Choisir</button>
+                  </div>
               </form>
           <form action="">
             <div class="form-group">
               <div class="taxInit">
-                <label for="prevTax">Insérer après</label>
-                <select name="prevTax" id="prevTaxSelect" class="chosen-select">
-                  {% for item in results %}
-                  <option value="{{ item.taxon_id }}">{{ item.taxon_id }} - {{ item.genre }} {{ item.espece }}
-                    {% if item.variete and item.variete.strip %} var. {{ item.variete }}{% endif %}
-                    {% if item.forme and item.forme.strip %} f. {{ item.forme }}{% endif %}
-                  </option>
-                  {% endfor %}
-                </select>
-                <button id="taxBtn" class="btn btn-primary">Génération du taxon</button>
+                {% if results2 %}
+                    <label for="prevTax">Insérer après : </label>
+                    <select name="prevTax" id="prevTaxSelect" class="chosen-select">
+                      {% for item in results2%}
+                      <option value="{{ item.taxon_id }}">{{ item.taxon_id }} - {{ item.genre }} {{ item.espece }}
+                        {% if item.variete and item.variete.strip %} var. {{ item.variete }}{% endif %}
+                        {% if item.forme and item.forme.strip %} f. {{ item.forme }}{% endif %}
+                      </option>
+                      {% endfor %}
+                    </select>
+                    <button id="taxBtn" class="btn btn-primary">Générer</button>
+                    <script>
+                      $(document).ready(() => {
+                        $('#prevTaxSelect1').val({{ selected|safe }});
+                        $('#prevTaxSelect1').trigger('chosen:updated');
+                      });
+                    </script>
+                  {% endif %}
               </div>
               <div class="taxInit">
                 <p>Insertion en fin de liste</p>
                 <input type="hidden" value="{{ max_tax }}" id="maxTaxIn">
-                <button class="btn btn-primary" id="maxTaxBtn">Insérer en fin de liste</button>
+                <button class="btn btn-primary" id="maxTaxBtn">Sélectionner le dernier taxon</button>
               </div>
               {% if results %}
                 <script>

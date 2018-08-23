@@ -22,7 +22,6 @@ class Identifiants(models.Model):
     sms = models.NullBooleanField()
     comestible = models.TextField(blank=True, null=True)
     a_imprimer = models.NullBooleanField()
-    lieu = models.TextField(blank=True, null=True)
     apparition = models.TextField(blank=True, null=True)
     notes = models.TextField(blank = True, null = True)
     ecologie = models.TextField(blank = True, null = True)

@@ -10,6 +10,7 @@ from django.db.models.functions import Length
 
 class SearchForm(forms.Form):
     taxon = forms.IntegerField(label = 'Taxon', required = False, widget = forms.NumberInput(attrs={'class' : 'form-control'}))
+    fiche = forms.IntegerField(label = 'Fiche', required = False, widget = forms.NumberInput(attrs={'class' : 'form-control'}))
     nomUsuel = forms.CharField(label = 'Nom', required=False, widget=forms.TextInput(attrs={'class' : 'form-control'}))
     genre = forms.CharField(label = 'Genre', required=False, widget=forms.TextInput(attrs={'class' : 'form-control'}))
     espece = forms.CharField(label = 'Espèce', required=False, widget=forms.TextInput(attrs={'class' : 'form-control'}))
@@ -176,6 +177,31 @@ class ModFormTax(forms.ModelForm):
             'icono1' : forms.TextInput(attrs={'class' : 'form-control'}),
             'icono2' : forms.TextInput(attrs={'class' : 'form-control'}),
             'icono3' : forms.TextInput(attrs={'class' : 'form-control'}),
+            'theme1' : forms.Select(attrs={'class' : 'form-control'}),
+            'theme2' : forms.Select(attrs={'class' : 'form-control'}),
+            'theme3' : forms.Select(attrs={'class' : 'form-control'}),
+            'theme4' : forms.Select(attrs={'class' : 'form-control'}),
+        }
+
+class NotesEcoForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(NotesEcoForm, self).__init__(*args, **kwargs)
+        self.list = Themes.objects.all().order_by(Length('theme').asc(), 'theme')
+        self.fields['theme1'].queryset = self.list
+        self.fields['theme1'].required = False
+        self.fields['theme2'].queryset = self.list
+        self.fields['theme2'].required = False
+        self.fields['theme3'].queryset = self.list
+        self.fields['theme3'].required = False
+        self.fields['theme4'].queryset = self.list
+        self.fields['theme4'].required = False
+        
+    class Meta:
+        model = Identifiants
+        fields = ['notes', 'ecologie', 'theme1', 'theme2', 'theme3', 'theme4']
+        widgets = {
+            'notes' : forms.Textarea(attrs={'class' : 'form-control', 'rows' : 5}),
+            'ecologie' : forms.Textarea(attrs={'class' : 'form-control', 'rows' : 5}),
             'theme1' : forms.Select(attrs={'class' : 'form-control'}),
             'theme2' : forms.Select(attrs={'class' : 'form-control'}),
             'theme3' : forms.Select(attrs={'class' : 'form-control'}),

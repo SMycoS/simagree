@@ -137,7 +137,16 @@ footer, .push {
         width: 30vw;
         margin: 5px auto 5px auto;
     }
-} 
+}
+
+.boutons {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.placeholder-width {
+    min-width: 10vw;
+}
 
 #sideBar {
     background-color: lightgrey;
@@ -152,6 +161,7 @@ footer, .push {
 
 #searchResults, #themesList {
     margin: 15px;
+    overflow-x: scroll;
     table {
         margin: auto;
         text-align: center;
@@ -159,6 +169,8 @@ footer, .push {
         border-radius: 10px;
         max-width: 100vw;
         overflow: scroll;
+        table-layout: fixed;
+        width: 100%;
         tr{
             &:nth-child(even){
                 background-color: whitesmoke;
@@ -179,30 +191,33 @@ footer, .push {
     th {
         padding: 5px;
         background-color: darkgrey;
-        min-width: 100px;
-        max-width: 135px;
+        //min-width: 100px;
+        //max-width: 135px;
         text-overflow: ellipsis;
+        @media screen and (max-width : 1366px) {
+            width: 150px;
+        }
     }
     td {
         padding: 5px;
-        min-width: 100px;
+        //min-width: 100px;
+        text-overflow: ellipsis;
     }
     tbody {
         max-height: 80vh;
         overflow:scroll;
-        display: block;
-
         .show {
             position: inherit;
         }
     }
-    thead, tbody tr {
-        display:table;
-        width:100%;
-        table-layout:fixed;/* even columns width , fix width of table too*/
-    }
     input {
         text-align: center;
+    }
+    .large-col {
+        width: 300px;
+    }
+    .small-col {
+        width: 100px;
     }
 
 }

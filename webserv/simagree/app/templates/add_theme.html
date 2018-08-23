@@ -28,7 +28,6 @@
                             <button type="submit" class="btn btn-danger">Supprimer</button>
                         </form>
                     </td>
-                </tr>
                 <script>
                         $(document).ready(() => {
                             $('#delThemeForm-{{theme.id}}').on('submit', (e) => {
@@ -36,6 +35,7 @@
                             });
                         });
                     </script>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>

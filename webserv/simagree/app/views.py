@@ -15,6 +15,7 @@ import os
 import datetime
 import csv
 import traceback
+import codecs
 from io import StringIO
 
 
@@ -142,7 +143,7 @@ def add(request):
         return redirect(reverse(connexion))
     if not (request.user.groups.filter(name='Administrateurs').exists()):
         return redirect(reverse(accueil))
-    # récupération de l'ensemble des taxons
+    max_tax = Identifiants.objects.all().aggregate(Max('taxon'))['taxon__max']
     # première requête
     if request.method == 'GET':
         id_form = AddFormId(request.GET or None)
@@ -170,21 +171,45 @@ def add(request):
             values.id = nomencMaxId()
             values.save()
             return redirect(reverse(details, kwargs = {'id_item' : values.id}))
+    elif request.method == 'POST' and request.POST['action'] == "result":
+        id_form = AddFormId()
+        nom_form = AddFormNom()
+        search_form = LightSearchForm(request.POST)
+        if search_form.is_valid():
+            items = light_dbRequest(search_form.cleaned_data)
+            selected_tax = int(request.POST['prevTax1'])
+            # selection +/- 500
+            selected_close = Nomenclature.objects.filter(Q(taxon_id__gte = selected_tax - 500) & Q(taxon_id__lte = selected_tax + 500)).values(
+                'taxon_id',
+                'genre',
+                'espece',
+                'variete',
+                'forme',
+            )
+            return render(request, 'add.html', {
+                'form' : id_form, 
+                'form2' : nom_form,
+                'searchform' : search_form, 
+                'results': items,
+                'results2' : selected_close,
+                'selected' : selected_tax,
+                'max_tax' : max_tax
+            })
     # Recherche
     else:
         id_form = AddFormId()
         nom_form = AddFormNom()
         search_form = LightSearchForm(request.POST)
         if search_form.is_valid():
-            # Taxon libre en fin de liste
             items = light_dbRequest(search_form.cleaned_data)
             return render(request, 'add.html', {
                 'form' : id_form, 
                 'form2' : nom_form,
                 'searchform' : search_form, 
-                'results':items
+                'results':items,
+                'max_tax' : max_tax
                 })
-    max_tax = Identifiants.objects.all().aggregate(Max('taxon'))['taxon__max'] + 100 # on incrémente de 100 par 100 les taxons
+    
     return render(request, 'add.html', {'form' : id_form, 'form2' : nom_form,'searchform' : search_form, 'max_tax' : max_tax})
 
 
@@ -354,7 +379,7 @@ def modify(request, id):
                     # Mise à jour dans la BDD
                     valide = Nomenclature.objects.filter(id = new_valide)
                     try:
-                        valide.select_for_update(codesyno = 0, date = datetime.date.today())
+                        valide.update(codesyno = 0, date = datetime.date.today())
                     except:
                         return HttpResponseServerError()
                     else:
@@ -365,7 +390,7 @@ def modify(request, id):
                                 genSyno(old_usuel)
                         synonymes = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno__in = [1,2]))
                         for s in synonymes:
-                            gensyno(s, valide = valide[0])
+                            genSyno(s, valide = valide[0])
                 # Cas : synonyme
                 else:
                     # passage SYN -> VALIDE
@@ -383,7 +408,7 @@ def modify(request, id):
                                 old_usuel = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno = 3))[0]
                                 genSyno(old_usuel, valide = values)
                             # changement de l'ancien VALIDE en SYN USUEL
-                            old_valide.select_for_update(codesyno = 3, date = datetime.date.today())
+                            old_valide.update(codesyno = 3, date = datetime.date.today())
                         # On met à jour de la des synonymes
                         synonymes = Nomenclature.objects.filter(Q(taxon = inst_nom.taxon) & Q(codesyno__in = [1,2]))
                         for s in synonymes:
@@ -428,21 +453,43 @@ def modifyTaxon(request, tax):
         form = ModFormTax(request.POST, instance = inst)
         if form.is_valid():
             values = form.save(commit = False)
-            print(values)
             values.save()
             valide = Nomenclature.objects.filter(Q(taxon = values.taxon) & Q(codesyno = 0))[0]
             return redirect(reverse(details, kwargs = {'id_item' : valide.id}))
     return render(request, 'modify_tax.html', {'form' : form, 'shrooms' : shrooms})
 
-
-
+def modifyNotesEco(request, tax):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Guides').exists()):
+        return redirect(reverse(accueil))
+    inst = Identifiants.objects.get(taxon = tax)
+    shrooms = Nomenclature.objects.filter(taxon = tax).order_by('codesyno').values(
+        'genre',
+        'espece',
+        'variete',
+        'forme',
+        'autorite',
+        'codesyno',
+        'taxon'
+    )
+    if request.method == 'GET':
+        form = NotesEcoForm(request.GET or None, instance = inst)
+    elif request.method == 'POST':
+        form = NotesEcoForm(request.POST, instance = inst)
+        if form.is_valid():
+            values = form.save(commit = False)
+            values.save()
+            valide = Nomenclature.objects.filter(Q(taxon = values.taxon) & Q(codesyno = 0))[0]
+            return redirect(reverse(details, kwargs = {'id_item' : valide.id}))
+    return render(request, 'modify_noteseco.html', {'form' : form, 'shrooms' : shrooms})
 
 ########## Vues pour la gestion des thèmes ##########
 
 def themes(request):
     if not request.user.is_authenticated:
         return redirect(reverse(connexion))
-    if not (request.user.groups.filter(name='Administrateurs').exists()):
+    if not (request.user.groups.filter(name='Guides').exists()):
         return redirect(reverse(accueil))
     themes_list = Themes.objects.order_by(Length('theme').asc(), 'theme').all()
     if request.method == 'GET':
@@ -463,7 +510,7 @@ def themes(request):
 def deleteTheme(request):
     if not request.user.is_authenticated:
         return redirect(reverse(connexion))
-    if not (request.user.groups.filter(name='Administrateurs').exists()):
+    if not (request.user.groups.filter(name='Guides').exists()):
         return redirect(reverse(accueil))
     if request.method == 'POST':
         item = Themes.objects.get(id = request.POST.get('ident'))
@@ -473,6 +520,20 @@ def deleteTheme(request):
 
 ########## Vues pour la gestion des pdf ##########
 
+def impression(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+
+    if request.method == "POST":
+        selection = request.POST.getlist('remove')
+        selection = [int(i) for i in selection]
+        Identifiants.objects.filter(taxon__in = selection).update(a_imprimer = False)
+        
+    items = Nomenclature.objects.select_related('taxon').filter(Q(taxon__a_imprimer = True) & Q(codesyno = 0)).all()
+    return render(request, 'impression.html', {'shrooms' : items})
+
 def resetImpression(request):
     if not request.user.is_authenticated:
         return redirect(reverse(connexion))
@@ -480,13 +541,17 @@ def resetImpression(request):
         return redirect(reverse(accueil))
     
     Identifiants.objects.filter(a_imprimer = True).update(a_imprimer = False)
-    return redirect(reverse(search))
+    return redirect(reverse(impression))
 
 def send_file(request, tax, type_fiche):
     if not request.user.is_authenticated:
         return redirect(reverse(connexion))
-    if not (request.user.groups.filter(name='Administrateurs').exists()):
-        return redirect(reverse(accueil))
+    if type_fiche = "systematique":
+        if not (request.user.groups.filter(name='Administrateurs').exists()):
+            return redirect(reverse(accueil))
+    else:
+        if not (request.user.groups.filter(name='Guides').exists()):
+            return redirect(reverse(accueil))
     #Suppression des fiches si trop nombreuses dans le dossier
     dir_fiches = settings.BASE_DIR +  '/app/pdf_assets/fiches/'
     try:
@@ -514,8 +579,7 @@ def send_file(request, tax, type_fiche):
         'taxon__theme3',
         'taxon__theme4',
         'taxon_id'
-    )
-
+    )[0]
 
     vars = {}
 
@@ -629,9 +693,6 @@ def pdf_bulk(request):
         generateFiche(fullpath, vars)
     bulk_pdf(liste_fiches, dir_fiches)
     return FileResponse(open(settings.BASE_DIR + '/app/pdf_assets/fiches.pdf', 'rb'), content_type='application/pdf')
-
-        
-    
 
     
 ########## Vues pour la gestion des fiches récolte (EBAUCHE) ##########
@@ -751,16 +812,16 @@ def csvIdent(request):
     response = HttpResponse(content_type='text/csv')
     filename = datetime.datetime.now().strftime('"SMS_Identifiants_%d-%m-%Y.csv"')
     response['Content-Disposition'] = 'attachment; filename=' + filename
+    response.write(codecs.BOM_UTF8)
     # Création du header
     csv_header = (
         'Taxon',
-        'Noms usuels',
-        'Fiche',
-        'Comestibilité',
         'SMS',
+        'Comestibilité',
+        'Fiche',
         'A imprimer',
-        'Lieu',
         'Apparition',
+        'Noms usuels',
         'Notes',
         'Ecologie',
         'Thème 1',
@@ -792,6 +853,7 @@ def csvNomenc(request):
     response = HttpResponse(content_type='text/csv')    
     filename = datetime.datetime.now().strftime('"SMS_Nomenclature_%d-%m-%Y.csv"')
     response['Content-Disposition'] = 'attachment; filename=' + filename
+    response.write(codecs.BOM_UTF8)
     # Création du header
     csv_header = (
         'Taxon',
@@ -870,7 +932,8 @@ def cimetiere(request):
         'autorite',
         'variete',
         'forme',
-        'taxon_id'
+        'taxon_id',
+        'id'
     )
     items_taxons = Nomenclature.objects.using('cimetiere').filter(codesyno = 0).values_list(
         'taxon_id'
@@ -907,5 +970,14 @@ def restoreTaxon(request, tax):
     id.delete()
     return redirect(reverse(cimetiere))
 
+def definitiveDelete(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse(connexion))
+    if not (request.user.groups.filter(name='Administrateurs').exists()):
+        return redirect(reverse(accueil))
+    if request.method == "POST":
+        item = Identifiants.objects.using('cimetiere').get(taxon = request.POST.get('taxon'))
+        item.delete()
+    return redirect(reverse(cimetiere))
     
     
