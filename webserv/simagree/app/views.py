@@ -546,7 +546,7 @@ def resetImpression(request):
 def send_file(request, tax, type_fiche):
     if not request.user.is_authenticated:
         return redirect(reverse(connexion))
-    if type_fiche = "systematique":
+    if type_fiche == "systematique":
         if not (request.user.groups.filter(name='Administrateurs').exists()):
             return redirect(reverse(accueil))
     else:
