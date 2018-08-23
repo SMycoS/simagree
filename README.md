@@ -28,4 +28,9 @@ SIMAGREE utilise plusieurs dépendances externes (en plus de Django) comme des p
 * [Chosen](https://harvesthq.github.io/chosen/)
 * [bootstrap-duallistbox](https://github.com/istvan-ujjmeszaros/bootstrap-duallistbox)
 * [datepicker](https://github.com/fengyuanchen/datepicker)
+* [PyPDF2](https://github.com/mstamy2/PyPDF2)
+* [ReportLab](https://www.reportlab.com)
 
+## Notes
+
+Les paramètres sur le serveur hébergé en ligne sont différents de ceux du dépôt (notamment ce qui concerne le mode debug, la clé secrète et la gestion des cookies de session)
