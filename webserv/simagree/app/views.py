@@ -620,7 +620,9 @@ def send_file(request, tax, type_fiche):
             titre = Themes.objects.get(theme = type_fiche).titre
             vars['theme_titre'] = none2string(titre)
             generateFicheTheme(fullpath, vars)
-        return FileResponse(open(fullpath, 'rb'), content_type='application/pdf')
+        res = FileResponse(open(fullpath, 'rb'), content_type='application/pdf')
+        #res['Content-Disposition'] = 'attachment; filename=' + vars['fiche']
+        return res
     except FileNotFoundError:
         raise Http404()
 
@@ -692,7 +694,10 @@ def pdf_bulk(request):
             vars['theme'] = 'Th'
         generateFiche(fullpath, vars)
     bulk_pdf(liste_fiches, dir_fiches)
-    return FileResponse(open(settings.BASE_DIR + '/app/pdf_assets/fiches.pdf', 'rb'), content_type='application/pdf')
+    res_file = open(settings.BASE_DIR + '/app/pdf_assets/fiches.pdf', 'rb')
+    res = FileResponse(res_file, content_type='application/pdf')
+    res['Content-Disposition'] = 'attachment; filename=fiches.pdf'
+    return res
 
     
 ########## Vues pour la gestion des fiches récolte (EBAUCHE) ##########

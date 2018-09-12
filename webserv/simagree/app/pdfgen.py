@@ -34,15 +34,15 @@ def generateFiche(pdf_filename, vars, size = (115*mm, 85*mm)):
     # Styles pour les paragraphes
     styleSheet = getSampleStyleSheet()
     style = styleSheet['BodyText']
-    style_obs = ParagraphStyle(name = 'Obs', fontSize = 8)
+    style_obs = ParagraphStyle(name = 'Obs', fontSize = 9, leading=9, fontName = 'Helvetica-Oblique')
     style_usuel = ParagraphStyle(name = 'SynoUsuel', fontSize = 12, alignment = 1, leading = 12)
 
     # Genre - Espece
-    style_nomenc = ParagraphStyle(name = 'Nomenclature', fontSize = 16, alignment = 1, fontName = 'Helvetica-Bold', leading = 22 )
+    style_nomenc = ParagraphStyle(name = 'Nomenclature', fontSize = 18, alignment = 1, fontName = 'Helvetica-Bold', leading = 22 )
     # Variete - Forme
-    style_nomenc_bis = ParagraphStyle(name = 'NomenclatureBis', fontSize = 11, alignment = 1, leading = 11, fontName = 'Helvetica-Bold')
+    style_nomenc_bis = ParagraphStyle(name = 'NomenclatureBis', fontSize = 14, alignment = 1, leading = 11, fontName = 'Helvetica-Bold')
     # Noms
-    style_noms = ParagraphStyle(name = 'Noms', fontSize = 12, leading=12)
+    style_noms = ParagraphStyle(name = 'Noms', fontSize = 12, leading=12, fontName = 'Helvetica-Bold')
     
     # Theme
     if 'theme' in vars.keys():
@@ -53,7 +53,11 @@ def generateFiche(pdf_filename, vars, size = (115*mm, 85*mm)):
 
     # Rectangle supérieur
     cnv.setLineWidth(2)
-    frame_top = Frame(0 + marginX, midY + (4.5 * marginY) + 5, sizeX - (2 * marginX), sizeY / 5, showBoundary = 1)
+    frame_top = Frame(0 + marginX, midY + (4.5 * marginY) + 5, sizeX - (2 * marginX), sizeY / 5, showBoundary = 1,
+        topPadding=2,
+        leftPadding=2,
+        rightPadding=2,
+        bottomPadding=2)
     nomenc = []
 
     # Genre et Espece
@@ -127,7 +131,7 @@ def generateFiche(pdf_filename, vars, size = (115*mm, 85*mm)):
     cnv.setLineWidth(1)
     frameW = sizeX - (2 * marginX)
     frameH = sizeY / 5
-    frame_obs = Frame(0 + marginX, 5 + marginY, frameW, frameH, showBoundary=1)
+    frame_obs = Frame(0 + marginX, 5 + marginY, frameW, frameH, showBoundary=1, leftPadding=2, topPadding=2, rightPadding=2, bottomPadding=2)
 
     # Observations
     if 'obs' in vars.keys():
@@ -143,7 +147,7 @@ def generateFiche(pdf_filename, vars, size = (115*mm, 85*mm)):
     # Code Barre (standard code39)
     barcode=code39.Standard39(vars['taxon'], barWidth=0.5*mm,barHeight=3.5*mm, checksum = 0)
     barcode.drawOn(cnv, 10 , 3)
-
+    cnv.showPage()
     cnv.save()
 
 # Génère une fiche thématique
@@ -155,40 +159,43 @@ def generateFicheTheme(pdf_filename, vars, size = (325.984, 240.945)):
     marginX = 10
     marginY = 10
     cnv = canvas.Canvas(pdf_filename, pagesize = size, verbosity = 1) # 115 x 85 mm
-    style_eco = ParagraphStyle(name = 'ObsEco', fontSize = 8, fontName = 'Helvetica-Oblique')
-    style_notes = ParagraphStyle(name = 'ObsNotes', fontSize = 8, fontName = 'Helvetica-Bold')
+    style_eco = ParagraphStyle(name = 'ObsEco', fontSize = 10, leading=10, fontName = 'Helvetica-Oblique')
+    style_notes = ParagraphStyle(name = 'ObsNotes', fontSize = 9, leading=9, fontName = 'Helvetica-Bold')
     style_titre = ParagraphStyle(
         name = 'ThemeTitre', 
         fontName = 'Helvetica-Bold',
         fontSize = 14,
         alignment = 1,
-        textColor = colors.Color(0,1,1,1)
+        textColor = colors.Color(239/255, 239/255, 0,1)
         
     )
-    style_nomenc = ParagraphStyle(name = 'Nomenc', fontName = 'Helvetica-BoldOblique' )
-    style_nomenc_bis = ParagraphStyle(name = 'Nomenc', fontName = 'Helvetica-Oblique', fontSize = 8)
-    style_noms = ParagraphStyle(name = 'Noms', fontSize = 12, alignment = 1, fontName = 'Helvetica-Bold', leading = 12)
+    style_nomenc = ParagraphStyle(name = 'Nomenc', fontName = 'Helvetica-BoldOblique', fontSize=12)
+    style_nomenc_bis = ParagraphStyle(name = 'Nomenc', fontName = 'Helvetica-Oblique', fontSize = 10)
+    style_noms = ParagraphStyle(name = 'Noms', fontSize = 16, alignment = 1, fontName = 'Helvetica-Bold', leading = 16)
 
-    # Bordure pour le massicot
-    cnv.rect(0,0, sizeX, sizeY, stroke = 1, fill = 0)
     
     # Rectangle du haut
-    cnv.setStrokeColorRGB((133 / 255), (133 / 255), (133 / 255))
+    cnv.setStrokeColorRGB(80 / 255, 80 / 255, 80 / 255)
     cnv.setLineWidth(2)
-    cnv.setFillColorRGB((133 / 255), (133 / 255), (133 / 255))
-    cnv.rect(0, sizeY - (4 * marginY), sizeX, 4 * marginY, fill = True)
+    cnv.setFillColorRGB(80 / 255,80 / 255,80 / 255)
+    cnv.rect(0, sizeY - (10 * mm), sizeX, 10 * mm, fill = True)
+
+    # Bordure pour le massicot
+    cnv.setStrokeColorRGB(0, 0, 0)
+    cnv.setLineWidth(1)
+    cnv.rect(0,0, sizeX, sizeY, stroke = 1, fill = 0)
     
     # Numero de fiche
     cnv.setStrokeColorRGB(0,0,0)
     cnv.setFillColorRGB(1,1,1)
-    cnv.drawRightString(sizeX - marginX, sizeY - (marginY + 15), vars['fiche'])
+    cnv.drawRightString(sizeX - marginX, sizeY - (marginY + 10), vars['fiche'])
 
     # Theme
-    cnv.drawString(marginX, sizeY - (marginY + 15), vars['theme_code'])
-    cnv.setFillColorRGB(0,1,1)
+    cnv.drawString(marginX, sizeY - (marginY + 10), vars['theme_code'])
+    cnv.setFillColorRGB(0, 0, 0)
     frameW = sizeX - (9 * marginX)
     frameH = marginY * 2.5
-    frame_titre = Frame(4.5 * marginX, sizeY - marginY * 2.8, frameW, frameH, showBoundary = 0)
+    frame_titre = Frame(4.5 * marginX, sizeY - marginY * 2.7, frameW, frameH, showBoundary = 0, leftPadding=2, topPadding=2, rightPadding=2, bottomPadding=2)
     titre = [Paragraph(vars['theme_titre'], style_titre)]
     titre_inframe = KeepInFrame(frameW, frameH, titre)
     frame_titre.addFromList([titre_inframe], cnv)
@@ -198,7 +205,7 @@ def generateFicheTheme(pdf_filename, vars, size = (325.984, 240.945)):
     cnv.setFillColorRGB(0,0,0)
     frameW = sizeX /2
     frameH = 5.5 * marginY
-    frame_nomenc = Frame(marginX * 0.6, sizeY - (9.5 * marginY), frameW , frameH, showBoundary = 0)
+    frame_nomenc = Frame(marginX * 0.6, sizeY - (10 * mm) - frameH, frameW , frameH, showBoundary = 0, leftPadding=2, topPadding=2, rightPadding=2, bottomPadding=2)
     nomenc = []
     
     # Genre et Espece
@@ -224,9 +231,9 @@ def generateFicheTheme(pdf_filename, vars, size = (325.984, 240.945)):
 
     # Noms usuels
     if 'noms' in vars.keys() and vars['noms'] != "":
-        frameW = sizeX * 0.65
+        frameW = sizeX * 0.75
         frameH = marginY * 6
-        frame_noms = Frame(1.5 * marginX, midY  - 4 * marginY, frameW, frameH, showBoundary = 0)
+        frame_noms = Frame(marginX, midY  - 3 * marginY, frameW, frameH, showBoundary = 0, leftPadding=2, topPadding=2, rightPadding=2, bottomPadding=2)
         noms = []
         for nom in vars['noms'].splitlines():
             if nom != "":
@@ -259,15 +266,15 @@ def generateFicheTheme(pdf_filename, vars, size = (325.984, 240.945)):
 
     # Rectangle du bas
     cnv.setLineWidth(1)
-    frame_obs = Frame(0 + marginX, 5 + marginY, sizeX - (2 * marginX), sizeY / 6, showBoundary=1)
+    frame_obs = Frame(0 + marginX, 5 + marginY, sizeX - (2 * marginX), sizeY / 6, showBoundary=1, leftPadding=2, topPadding=2, rightPadding=2, bottomPadding=2)
 
     # Observations
     if 'obs' in vars.keys():
         notes = [Paragraph(vars['obs'][0], style_notes)]
         eco = [Paragraph(vars['obs'][1], style_eco)]
-        frame_eco = Frame(0 + marginX, 5 + (1 * marginY) + sizeY / 6, sizeX - (2 * marginX), 2.2 * marginY, showBoundary=0)
+        frame_eco = Frame(0 + marginX, 5 + (1 * marginY) + sizeY / 6, sizeX - (2 * marginX), 2.6 * marginY, showBoundary=0, leftPadding=2, topPadding=2, rightPadding=2, bottomPadding=2)
         notes_inframe = KeepInFrame(sizeX - (2 * marginX), sizeY / 6, notes)
-        eco_inframe = KeepInFrame(sizeX - (2 * marginX), 2.2 * marginY, eco)
+        eco_inframe = KeepInFrame(sizeX - (2 * marginX), 2.6 * marginY, eco)
         frame_obs.addFromList([notes_inframe], cnv)
         frame_eco.addFromList([eco_inframe], cnv)
 
@@ -280,13 +287,13 @@ def generateFicheTheme(pdf_filename, vars, size = (325.984, 240.945)):
     barcode=code39.Standard39(vars['taxon'], barWidth=0.5*mm,barHeight=3.5*mm, checksum = 0)
     barcode.drawOn(cnv, 10 , 3)
 
+    cnv.showPage()
     cnv.save()
-
 
 def bulk_pdf(fiche_list, rep):
     blank_page_path = settings.BASE_DIR + '/app/pdf_assets/blankA4.pdf'
     output_file = open(settings.BASE_DIR + '/app/pdf_assets/fiches.pdf', 'wb')
-    write_pdf = write_pdf = PyPDF2.PdfFileWriter()
+    write_pdf = PyPDF2.PdfFileWriter()
     # On ouvre un pdf blanc
     base = open(blank_page_path, 'rb')
     offset_x = 150
