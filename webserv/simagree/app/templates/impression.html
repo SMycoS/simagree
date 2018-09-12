@@ -36,7 +36,7 @@
                 </tbody>
             </table>
             <div class="boutons">
-                <form action="{% url 'reset-impression' %}" method="post" id="resetform"></form>
+                <form action="{% url 'reset-impression' %}" method="post" id="resetform">{% csrf_token %}</form>
                 <button type="submit" class="btn btn-info" form="resetform">Réinitialiser tous les élements</button>
                 <button type="submit" class="btn btn-info" form="rm-form">Enlever les éléments selectionnés</button>
                 <a href="{% url 'pdf-bulk' %}" class="btn btn-warning">Générer le pdf</a>
