@@ -209,13 +209,14 @@ def generateFicheTheme(pdf_filename, vars, size = (325.984, 240.945)):
     nomenc = []
     
     # Genre et Espece
-    nomenc.append(Paragraph(vars['genre'] + ' ' + vars['espece'], style_nomenc))
-
-    # Variete et Forme
+    genre_esp = vars['genre'] + ' ' + vars['espece']
     if vars['variete'] != "":
-        nomenc.append(Paragraph(vars['variete'], style_nomenc_bis))
+        genre_esp += 'var. ' + vars['variete']
     elif vars['forme'] != "":
-        nomenc.append(Paragraph(vars['forme'], style_nomenc_bis))
+        genre_esp += 'f. ' + vars['forme']
+
+    nomenc.append(Paragraph(genre_esp, style_nomenc))
+
     if 'usuel_genre' in vars.keys():
         nomenc.append(Paragraph('( = ' + vars['usuel_genre'] + ' ' + vars['usuel_espece'] + ' ) ', style_nomenc_bis))
         if vars['usuel_variete'] != "":
