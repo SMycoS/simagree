@@ -203,17 +203,17 @@ def generateFicheTheme(pdf_filename, vars, size = (325.984, 240.945)):
 
     # Genre et Espece
     cnv.setFillColorRGB(0,0,0)
-    frameW = sizeX /2
-    frameH = 5.5 * marginY
+    frameW =  0.9 * sizeX
+    frameH = 3 * marginY
     frame_nomenc = Frame(marginX * 0.6, sizeY - (10 * mm) - frameH, frameW , frameH, showBoundary = 0, leftPadding=2, topPadding=2, rightPadding=2, bottomPadding=2)
     nomenc = []
     
     # Genre et Espece
     genre_esp = vars['genre'] + ' ' + vars['espece']
     if vars['variete'] != "":
-        genre_esp += 'var. ' + vars['variete']
+        genre_esp += ' var. ' + vars['variete']
     elif vars['forme'] != "":
-        genre_esp += 'f. ' + vars['forme']
+        genre_esp += ' f. ' + vars['forme']
 
     nomenc.append(Paragraph(genre_esp, style_nomenc))
 

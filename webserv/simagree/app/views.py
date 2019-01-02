@@ -82,6 +82,9 @@ def nomencMaxId():
 def accueil(request):
     return render(request, 'home.html')
 
+def about(request):
+    return render(request, 'about.html')
+
 def connexion(request):
     error = False
     if request.method == "POST":
