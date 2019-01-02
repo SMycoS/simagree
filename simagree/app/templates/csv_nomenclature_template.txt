@@ -1,0 +1,3 @@
+"{{header.0}}";"{{header.1}}";"{{header.2}}";"{{header.3}}";"{{header.4}}";"{{header.5}}";"{{header.6}}";"{{header.7}}";"{{header.8}}";"{{header.9}}";"{{header.10}}";"{{header.11}}"
+{% for row in data %}"{{ row.taxon_id|safe|addslashes }}";"{{ row.codesyno|safe|addslashes }}";"{{ row.genre|safe|addslashes }}";"{{ row.espece|safe|addslashes }}";"{{ row.variete|safe|addslashes }}";"{{ row.forme|safe|addslashes }}";"{{ row.autorite|safe|addslashes }}";"{{ row.biblio1|safe|addslashes }}";"{{ row.biblio2|safe|addslashes }}";"{{ row.biblio3|safe|addslashes }}";"{{ row.moser|safe|addslashes }}";"{{ row.date|safe|addslashes }}"
+{% endfor %}

@@ -1,3 +1,5 @@
-webserv/simagree/app/static/js/chosen_v1
-webserv/simagree/app/static/js/dual_select_boxes
-webserv/simagree/app/static/js/datepicker-master
+simagree/app/static/js/chosen_v1
+simagree/app/static/js/dual_select_boxes
+simagree/app/static/js/datepicker-master
+.DS_Store
+.vscode

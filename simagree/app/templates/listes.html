@@ -1,0 +1,130 @@
+{% extends 'partial/base.html' %}
+
+{% block custom_style %}
+<style>
+        #searchResults {
+            margin: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<section id="searchResults" class="container-fluid listes">
+    <div class="row">
+    <div class="container col-3" id="sideBar">
+            <!-- Button trigger modal LIEUX-->
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#lieuModal">
+                    Liste des lieux
+            </button>
+            <h3>Ajouter une liste</h3>
+            <form action="." method="post">
+                    {% csrf_token %}
+                    {{ listeform.non_field_errors }}
+                    <div class="form-group col-8">
+                            <label for="{{ listeform.lieu.id_for_label }}">Lieu : </label>
+                            {{ listeform.lieu }}
+                            <small class="form-text text-muted">{{ listeform.lieu.errors }}</small>
+                    </div>
+                    <div class="form-group col-8">
+                            <label for="{{ listeform.date.id_for_label }}">Date : </label>
+                            {{ listeform.date }}
+                            <small class="form-text text-muted">{{ listeform.date.errors }}</small>
+                          </div>
+                    <button type="submit" name="action" value="liste" class="btn btn-primary">Ajouter</button>
+                    {% if modal_display == "liste" %}
+                    <script>
+                      $('#listeModal').modal('show');
+                    </script>
+                  {% endif %}
+                  <script>
+                    $(document).ready(() => {
+                        $('#datepicker').datepicker({
+                            'format' : 'dd/mm/yyyy',
+                        });
+                        $('select[name="lieu"]').chosen({
+                            width: '100%'
+                        })
+                    });
+                  </script>
+              </form>
+    </div>
+    <div class="container col-8 listes">
+            <h3>Il y a actuellement {{listes|length}} listes</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Lieu</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for k in listes %}
+                <tr>
+                    <td>{{ k.date }}</td>
+                    <td>{{ k.lieu.libelle }}</td>
+                    <td><a href="{% url 'editList' id_liste=k.id %}?page=1" class="btn btn-info">Editer</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    </div>
+    
+</section>
+{% endblock %}
+{% block extra %}
+<!-- Modal LIEUX -->
+<div class="modal fade" id="lieuModal" tabindex="-1" role="dialog" aria-labelledby="lieuModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="lieuModalLabel">Liste des lieux</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-6 listeLieux">
+                            <ul>
+                                {% for k in lieux %}
+                                    <li>{{ k.libelle }} ({{ k.commune }} {{ k.lieu_dit }})</li>
+                                    <form action="." method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="ident" value="{{ k.id }}">
+                                        <button type="submit" name="action" value="deleteLieu" class="btn btn-danger">Supprimer</button>
+                                    </form>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-6">
+
+                            <form action="." method="post">
+                                {% csrf_token %}
+                                {{ lieuform }}
+                                <br>
+                                <button type="submit" name="action" value="lieu" class="btn btn-primary">Ajouter</button>
+                                {% if modal_display == "lieu" %}
+                                <script>
+                                  $('#lieuModal').modal('show');
+                                </script>
+                              {% endif %}
+                          </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+<script>
+    $('#libelleInput').on('click', () => {
+        if ($('#libelleInput').val() == "") {
+            $('#libelleInput').val($('#id_commune').val() + ' ' + $('#id_lieu_dit').val())
+        }
+
+    })
+</script>
+{% endblock %}

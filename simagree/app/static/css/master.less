@@ -1,0 +1,236 @@
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+.wrapper {
+    min-height: 100%;
+    margin-bottom: -50px;
+}
+footer, .push {
+    height: 50px;
+}
+
+.taxInit {
+    margin: 20px auto 10px auto;
+}
+
+.e404 {
+    text-align: center;
+    p, a {
+        display: block;
+        margin: 30px auto auto auto;
+    }
+}
+.accueil {
+    .row {
+        flex-wrap: nowrap;
+    }
+    .logo {
+        min-width: 224px;
+    }
+}
+
+.pre {
+    white-space: pre-wrap;
+}
+.footer {
+    display: flex;
+    flex-flow: row wrap;
+    text-align: center;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    p {
+        font-size: 0.8em;
+        flex: 1 0 auto;
+        margin: 0;
+    }
+}
+
+.presentation {
+    margin-top: 10vh;
+    .row {
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+    text-align: center;
+
+    .soon {
+        p {
+            font-size: 0.8em;
+        }
+    }
+
+}
+
+.searchForm {
+    padding: 30px;
+    background-color: #e9ecef;
+
+}
+
+.formDiv {
+    margin: 30px;
+}
+
+.navLogin {
+    p {
+        color: white;
+        margin: auto;
+        display: inline-block;
+        padding-right: 10px;
+    }
+
+}
+
+.resultField {
+    height: 30vh;
+    overflow: scroll;
+}
+
+.listeLieux {
+    overflow: scroll;
+    ul {
+        list-style-type: none;
+    }
+}
+
+.pages {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+    text-align: center;
+    margin-top: 50px;
+    
+    a {
+        flex: 1 0 auto;
+        max-width: 40px;
+        display: block;
+        margin: 10px;
+    }
+}
+
+.imp-exp {
+    text-align: center;
+    padding: 20px;
+    margin-top: 10px;
+
+    .form-group {
+        margin: 15px auto 15px auto;
+    }
+}
+
+.listes {
+    margin: 15px;
+}
+
+.infos {
+    margin-top: 15px;
+}
+
+.fiches{
+    text-align: center;
+    a {
+        display: block;
+        width: 30vw;
+        margin: 5px auto 5px auto;
+    }
+}
+
+.boutons {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.placeholder-width {
+    min-width: 10vw;
+}
+
+#sideBar {
+    background-color: lightgrey;
+    height: 100vh;
+    margin-left: 0;
+    padding: 30px;
+
+    h3 {
+        margin: 20px 0px 20px 0px;
+    }
+}
+
+#searchResults, #themesList {
+    margin: 15px;
+    overflow-x: scroll;
+    table {
+        margin: auto;
+        text-align: center;
+        border: 1px solid lightcoral;
+        border-radius: 10px;
+        max-width: 100vw;
+        overflow: scroll;
+        table-layout: fixed;
+        width: 100%;
+        tr{
+            &:nth-child(even){
+                background-color: whitesmoke;
+                input {
+                    background-color: whitesmoke;
+                }
+            }
+    
+            &:nth-child(odd){
+                background-color: lightgrey;
+                input {
+                    background-color: lightgrey;
+                }
+            }
+        }
+
+    }
+    th {
+        padding: 5px;
+        background-color: darkgrey;
+        //min-width: 100px;
+        //max-width: 135px;
+        text-overflow: ellipsis;
+        @media screen and (max-width : 1366px) {
+            width: 150px;
+        }
+    }
+    td {
+        padding: 5px;
+        //min-width: 100px;
+        text-overflow: ellipsis;
+    }
+    tbody {
+        max-height: 80vh;
+        overflow:scroll;
+        .show {
+            position: inherit;
+        }
+    }
+    input {
+        text-align: center;
+    }
+    .large-col {
+        width: 300px;
+    }
+    .small-col {
+        width: 100px;
+    }
+
+}
+
+.theme-form {
+    text-align: center;
+    margin: 5px;
+
+    input {
+        display: inline-block;
+        width: auto;
+    }
+    div {
+        display: inline-block;
+    }
+}

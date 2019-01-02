@@ -1,0 +1,233 @@
+{% extends 'partial/base.html' %}
+
+{% block content %}
+<div class="container formDiv">
+  <!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#taxonModal">
+    Sélection automatique du taxon
+  </button>
+    <form class="form-horizontal" method="POST" action=".">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {{ form2.non_field_errors}}
+        <div class="row">
+          <div class="form-group col-3">
+            <label for="{{ form.taxon.id_for_label }}">Taxon : </label>
+            {{ form.taxon }}
+            <small class="form-text text-muted">{{ form.taxon.errors }}</small>
+          </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-3">
+              <label for="{{ form2.genre.id_for_label }}">Genre : </label>
+              {{ form2.genre }}
+              <small class="form-text text-muted">{{ form2.genre.errors }}</small>
+            </div>
+            <div class="form-group col-3">
+              <label for="{{ form2.espece.id_for_label }}">Espèce : </label>
+              {{ form2.espece }}
+              <small class="form-text text-muted">{{ form2.espece.errors }}</small>
+            </div>
+            <div class="form-group col-3">
+                <label for="{{ form2.autorite.id_for_label }}">Autorité : </label>
+                {{ form2.autorite }}
+                <small class="form-text text-muted">{{ form2.autorite.errors }}</small>
+              </div>
+          </div>
+            <div class="row">
+                <div class="form-group col-3">
+                  <label for="{{ form2.variete.id_for_label }}">Variété : </label>
+                  {{ form2.variete }}
+                  <small class="form-text text-muted">{{ form2.variete.errors }}</small>
+                </div>
+                <div class="form-group col-3">
+                  <label for="{{ form2.forme.id_for_label }}">Forme : </label>
+                  {{ form2.forme }}
+                  <small class="form-text text-muted">{{ form2.forme.errors }}</small>
+                </div>
+              </div>
+        <div class="row">
+          <div class="form-group col-6">
+            <label for="{{ form.noms.id_for_label }}">Noms : </label>
+            {{ form.noms }}
+            <small class="form-text text-muted">{{ form.noms.errors }}</small>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group col-3">
+            <label for="{{ form.comestible.id_for_label }}">Comestibilité : </label>
+            {{ form.comestible }}
+            <small class="form-text text-muted">{{ form.comestible.errors }}</small>
+          </div>
+          <div class="form-group col-3">
+            <label for="{{ form.sms.id_for_label }}">Présent à la SMS : </label>
+            {{ form.sms }}
+            <small class="form-text text-muted">{{ form.sms.errors }}</small>
+          </div>
+          <div class="form-group col-3">
+            <label for="{{ form.a_imprimer.id_for_label }}">A imprimer : </label>
+            {{ form.a_imprimer }}
+            <small class="form-text text-muted">{{ form.a_imprimer.errors }}</small>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group col-3">
+            <label for="{{ form.apparition.id_for_label }}">Apparition : </label>
+            {{ form.apparition }}
+            <small class="form-text text-muted">{{ form.apparition.errors }}</small>
+          </div>
+          
+        </div>
+        <div class="row">
+          <div class="form-group col-4">
+            <label for="{{ form.notes.id_for_label }}">Notes : </label>
+            {{ form.notes }}
+            <small class="form-text text-muted">{{ form.notes.errors }}</small>
+          </div>
+          <div class="form-group col-4">
+              <label for="{{ form.ecologie.id_for_label }}">Ecologie : </label>
+              {{ form.ecologie }}
+              <small class="form-text text-muted">{{ form.ecologie.errors }}</small>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-2">
+              <label for="{{ form2.biblio1.id_for_label }}">Bibliographie (1) : </label>
+              {{ form2.biblio1 }}
+              <small class="form-text text-muted">{{ form2.biblio1.errors }}</small>
+            </div>
+            <div class="form-group col-2">
+              <label for="{{ form2.biblio2.id_for_label }}">Bibliographie (2) : </label>
+              {{ form2.biblio2 }}
+              <small class="form-text text-muted">{{ form2.biblio2.errors }}</small>
+            </div>
+            <div class="form-group col-2">
+              <label for="{{ form2.biblio3.id_for_label }}">Bibliographie (3) : </label>
+              {{ form2.biblio3 }}
+              <small class="form-text text-muted">{{ form2.biblio3.errors }}</small>
+            </div>
+          </div>
+        <div class="row">
+          <div class="form-group col-2">
+            <label for="{{ form.icono1.id_for_label }}">Iconographie (1) : </label>
+            {{ form.icono1 }}
+            <small class="form-text text-muted">{{ form.icono1.errors }}</small>
+          </div>
+          <div class="form-group col-2">
+            <label for="{{ form.icono2.id_for_label }}">Iconographie (2) : </label>
+            {{ form.icono2 }}
+            <small class="form-text text-muted">{{ form.icono2.errors }}</small>
+          </div>
+          <div class="form-group col-2">
+            <label for="{{ form.icono3.id_for_label }}">Iconographie (3) : </label>
+            {{ form.icono3 }}
+            <small class="form-text text-muted">{{ form.icono3.errors }}</small>
+          </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-2">
+                <label for="{{ form.theme1.id_for_label }}">Thème (1) : </label>
+                {{ form.theme1 }}
+                <small class="form-text text-muted">{{ form.theme1.errors }}</small>
+              </div>
+            <div class="form-group col-2">
+                <label for="{{ form.theme2.id_for_label }}">Thème (2) : </label>
+                {{ form.theme2 }}
+                <small class="form-text text-muted">{{ form.theme2.errors }}</small>
+              </div>
+              <div class="form-group col-2">
+                  <label for="{{ form.theme3.id_for_label }}">Thème (3) : </label>
+                  {{ form.theme3 }}
+                  <small class="form-text text-muted">{{ form.theme3.errors }}</small>
+                </div>
+                <div class="form-group col-2">
+                    <label for="{{ form.theme4.id_for_label }}">Thème (4) : </label>
+                    {{ form.theme4 }}
+                    <small class="form-text text-muted">{{ form.theme4.errors }}</small>
+                  </div>
+        </div>
+       
+          <button type="submit" class="btn btn-primary" name="action" value ="add">Créer</button>
+        </form>
+</div>
+{% endblock %}
+
+{% block extra %}
+  <!-- Modal -->
+  <div class="modal fade" id="taxonModal" tabindex="-1" role="dialog" aria-labelledby="taxonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taxonModalLabel">Sélection du taxon</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <form action="." method="post">
+                {% csrf_token %}
+                  <div class="row">
+                      <div class="form-group col-6">
+                          <label for="{{ searchform.genre.id_for_label }}">Genre : </label>
+                          {{ searchform.genre }}
+                          <small class="form-text text-muted">{{ searchform.genre.errors }}</small>
+                      </div>
+                      <div class="form-group col-6">
+                          <label for="{{ searchform.espece.id_for_label }}">Espèce : </label>
+                          {{ searchform.espece }}
+                          <small class="form-text text-muted">{{ searchform.espece.errors }}</small>
+                      </div>
+                  </div>
+                  <button type="submit" class="btn btn-primary" name="action" value="search">Recherche</button>
+                  <div class="taxInit">
+                  <label for="prevTax1">Proche de : </label>
+                  <select name="prevTax1" id="prevTaxSelect1" class="chosen-select">
+                    {% for item in results %}
+                    <option value="{{ item.taxon_id }}">{{ item.taxon_id }} - {{ item.genre }} {{ item.espece }}
+                      {% if item.variete and item.variete.strip %} var. {{ item.variete }}{% endif %}
+                      {% if item.forme and item.forme.strip %} f. {{ item.forme }}{% endif %}
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="btn btn-primary" name="action" value="result">Choisir</button>
+                  </div>
+              </form>
+          <form action="">
+            <div class="form-group">
+              <div class="taxInit">
+                {% if results2 %}
+                    <label for="prevTax">Insérer après : </label>
+                    <select name="prevTax" id="prevTaxSelect" class="chosen-select">
+                      {% for item in results2%}
+                      <option value="{{ item.taxon_id }}">{{ item.taxon_id }} - {{ item.genre }} {{ item.espece }}
+                        {% if item.variete and item.variete.strip %} var. {{ item.variete }}{% endif %}
+                        {% if item.forme and item.forme.strip %} f. {{ item.forme }}{% endif %}
+                      </option>
+                      {% endfor %}
+                    </select>
+                    <button id="taxBtn" class="btn btn-primary">Générer</button>
+                    <script>
+                      $(document).ready(() => {
+                        $('#prevTaxSelect1').val({{ selected|safe }});
+                        $('#prevTaxSelect1').trigger('chosen:updated');
+                      });
+                    </script>
+                  {% endif %}
+              </div>
+              <div class="taxInit">
+                <p>Insertion en fin de liste</p>
+                <input type="hidden" value="{{ max_tax }}" id="maxTaxIn">
+                <button class="btn btn-primary" id="maxTaxBtn">Sélectionner le dernier taxon</button>
+              </div>
+              {% if results %}
+                <script>
+                  $('#taxonModal').modal('show');
+                </script>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

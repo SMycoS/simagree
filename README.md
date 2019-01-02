@@ -3,20 +3,19 @@ Base de données mycologique
 
 Système d'Information Mycologique : Aide à la Gestion des REcoltes et des Expositions
 
-
 ## Lancer le serveur de développement
 
+Il faut de préférence créer un environnement virtuel (python 3)
+
 ```bash
-# Activation de l'environnement virtuel
-cd webserv
-source bin/activate
+# dependances (si non installées)
+pip install -r requirements.txt
 
-# Serveur
-
+# serveur
 cd simagree
 python manage.py runserver
 
-# selon l'OS, il faut utiliser la commande python 3 au lieu de simplement python
+# selon l'OS (ou la configuration du venv), il faut utiliser la commande python 3 au lieu de simplement python
 ```
 
 ## Dépendances
