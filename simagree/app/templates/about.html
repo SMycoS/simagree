@@ -1,0 +1,50 @@
+{% extends 'partial/base.html' %}
+{% load staticfiles %}
+{% block custom_style %}
+<style>
+    .warn {
+        color: red;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<section>
+    <div class="jumbotron accueil">
+        <div class="row">
+            <div class="logo col-2">
+                <img src="{% static 'media/logo.png' %}" alt="logo">
+                <a class="btn btn-primary btn-lg" href="http://mycostra.free.fr" role="button">Site de l'association</a>
+            </div>
+            <hr class="my-4">
+            <div class="col-10">
+                <h1 class="display-4">SIMAGREE</h1>
+                <p class="lead">Version 1.0</p>
+                <p class="lead">Copyright © Société Mycologique de Strasbourg (SMS), 2018</p>
+                <p class="lead"><b>Conception :</b> <a href="mailto:roland.wiest@gmail.com">Roland WIEST</a></p>
+                <p class="lead"><b>Réalisation :</b> <a href="https://paul-heng.fr">Paul HENG</a></p>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <h1>Licence et diffusion</h1>
+        <p>Ce logiciel est régi par la licence CeCILL-B soumise au droit français et respectant les principes de
+            diffusion des logiciels libres. Vous pouvez utiliser, modifier et/ou redistribuer ce programme sous les
+            conditions de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA sur <a href="http://www.cecill.info">le site de la licence</a>.
+            Par contre, les données accessibles par ce logiciel restent la propriété de la SMS; elles ne sont pas diffusables ou
+            exportables, même à des fins non commerciales, sans un accord écrit explicite du Président de la SMS ou de
+            son représentant.</p>
+        <h1>Présentation</h1>
+        <p><b>SIMAGREE</b> (<b>S</b>ystème d'<b>I</b>nformation <b>M</b>ycologique : <b>A</b>ide à la <b>G</b>estion des <b>RE</b>coltes et des <b>E</b>xpositions) exploite une base de données mycologique, créée, alimentée et maintenue à jour essentiellement par Roland WIEST.</p>
+        <p>La v1.0 réalisée par Paul HENG est une base nomenclaturale des champignons observés ou susceptibles d’être
+            observés au cours des activités de la SMS. Outre le nom valide, elle contient souvent les synonymes et les
+            noms vernaculaires, un indicateur de présence à la SMS, la comestibilité et les sources bibliographiques.
+            La comestibilité mentionnée à titre indicatif résulte de la compilation d’ouvrages existants; elle est
+            sujette à de nombreuses incertitudes; <span class="warn">la SMS ne saurait la garantir et dégage toute responsabilité en cas
+            d’intoxication</span>.</p>
+            <p>Cette v1.0 permet l’édition des fiches d’exposition de la SMS. Les développements ultérieurs permettront la
+            collecte de listes de récoltes et leur gestion à des fins d’inventaire ou de statistiques de présence des
+            espèces dans les zones de prospection de la SMS, soit en groupe, soit lors d’activités individuelles de ses
+            membres.</p>
+    </div>
+</section>
+{% endblock %}
