@@ -11,6 +11,12 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+import environ
+
+env = environ.Env(
+    DEBUG = (bool, False)
+)
+environ.Env.read_env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,10 +26,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'dasv%-v-$m&9scnoe*c@o65n#1nu2qsp89_yj&6^fs1yn8hqg7'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = [
 ]
@@ -79,28 +85,28 @@ WSGI_APPLICATION = 'simagree.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'simagree',
-        'USER': 'simagree_admin',
-        'PASSWORD': 'simagree2018',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'USER': env('DB_USER')
+        'PASSWORD': env('DB_PASS')
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
         },
     'cimetiere': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'simagree_cimetiere',
-        'USER': 'simagree_admin',
-        'PASSWORD': 'simagree2018',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'USER': env('DB_USER')
+        'PASSWORD': env('DB_PASS')
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
     },
     'import-check': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'simagree_import',
-        'USER': 'simagree_admin',
-        'PASSWORD': 'simagree2018',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'USER': env('DB_USER')
+        'PASSWORD': env('DB_PASS')
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
     },
 }
 
@@ -144,10 +150,11 @@ USE_TZ = True
 
 STATIC_URL = '/app/static/'
 INTERNAL_IPS = ['127.0.0.1']
-#SESSION_COOKIE_AGE = 900
-#SESSION_SAVE_EVERY_REQUEST = True
-#CSRF_COOKIE_SECURE = True
-#SESSION_COOKIE_SECURE = True
-#CONN_MAX_AGE = None
+STATIC_ROOT = env('STATIC_ROOT')
+SESSION_COOKIE_AGE = 900
+SESSION_SAVE_EVERY_REQUEST = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CONN_MAX_AGE = None
 
 
