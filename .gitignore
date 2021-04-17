@@ -3,4 +3,6 @@ simagree/app/static/js/dual_select_boxes
 simagree/app/static/js/datepicker-master
 .DS_Store
 .vscode
-*/__pycache__
+**/__pycache__
+simagree/app/pdf_assets/fiches
+simagree/app/pdf_assets/fiches.pdf
